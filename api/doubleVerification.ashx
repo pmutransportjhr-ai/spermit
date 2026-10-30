@@ -22,9 +22,10 @@ public class Vehicle : IHttpHandler {
 
     public void ProcessRequest(HttpContext context)
     {
-        String sConnectionString =
-        ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString;
-
+        // Do not resolve the database connection string before dispatching:
+        // GetPaymentHistory validates it inside its own try/catch so errors can
+        // be returned as JSON instead of the site's generic HTML error page.
+        string sConnectionString = null;
         string caller = Convert.ToString(context.Request["caller"]);
 
         switch (caller)
@@ -35,6 +36,9 @@ public class Vehicle : IHttpHandler {
                 return;
 
             case "GetPaymentStatus":
+
+                sConnectionString =
+                    ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString;
 
                 string queryString =
                     Convert.ToString(context.Request["q"]);
@@ -332,7 +336,10 @@ public class Vehicle : IHttpHandler {
 
                 
             case "Reprintdata":
-                
+
+                     sConnectionString =
+                         ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString;
+
                      queryString = Convert.ToString(context.Request.QueryString["q"]);
                      applicationNumber = queryString.Trim();
                      strResult = string.Empty;
