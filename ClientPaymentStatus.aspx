@@ -294,18 +294,17 @@
                     console.log("Content-Type:", xhr.getResponseHeader("Content-Type"));
                     console.log("Raw response:", response);
 
-                    try {
-                        var records = JSON.parse(response);
+                    // jQuery has already parsed the response because dataType is "json".
+                    var records = response;
 
-                        console.log("Parsed payment records:", records);
-
-                        // Put your existing code that builds the payment-history table here.
-                        renderPaymentHistory(records);
-
-                    } catch (e) {
-                        console.error("JSON parsing failed:", e);
-                        alert("The handler response is not valid JSON. Check F12 > Console.");
+                    if (!Array.isArray(records)) {
+                        console.error("Unexpected payment-history response:", records);
+                        alert((records && records.error) || "Unexpected payment-history response.");
+                        return;
                     }
+
+                    console.log("Parsed payment records:", records);
+                    renderPaymentHistory(records);
                 },
 
                 error: function (xhr, textStatus, errorThrown) {
@@ -326,6 +325,59 @@
             return false;
         }
 
+
+        // Render payment-history records returned by GetPaymentHistory.
+        function renderPaymentHistory(records) {
+            var $body = $('#paymentHistoryBody');
+            $body.empty();
+            selectedPaymentId = null;
+            $('#btnCheckSelectedPayment').prop('disabled', true);
+
+            if (!records || records.length === 0) {
+                $('#paymentHistoryContainer').hide();
+                $('#lblMessage').show().text('No payment history found for this application number.');
+                return;
+            }
+
+            $.each(records, function (index, record) {
+                var id = record.ID;
+                var status = record.TRN_STATUS || '';
+                var dateText = formatPaymentDate(record.TRANSACTION_ON);
+                var amount = record.TXN_AMOUNT == null || record.TXN_AMOUNT === ''
+                    ? '—' : record.TXN_AMOUNT;
+                var reference = record.TRN_REF_NO || '—';
+
+                var $row = $('<tr>');
+                var $radio = $('<input>', {
+                    type: 'radio',
+                    name: 'selectedPayment',
+                    class: 'payment-history-radio',
+                    value: id,
+                    'aria-label': 'Select payment transaction ' + id
+                });
+
+                var $selectCell = $('<td>').append($radio);
+                var $dateCell = $('<td>').text(dateText || '—');
+                var $amountCell = $('<td>').text(amount);
+                var $referenceCell = $('<td>').text(reference);
+                var $statusCell = $('<td>').text(status);
+
+                $row.append($selectCell, $dateCell, $amountCell, $referenceCell, $statusCell);
+                $body.append($row);
+            });
+
+            $('#paymentHistoryContainer').show();
+            $('#lblMessage').hide();
+        }
+
+        // Keep the selected ID synchronized with the radio button selection.
+        $(document).on('change', 'input[name="selectedPayment"]', function () {
+            selectedPaymentId = $(this).val();
+            $('#paymentHistoryBody tr').removeClass('selected-payment');
+            $(this).closest('tr').addClass('selected-payment');
+            $('#btnCheckSelectedPayment').prop('disabled', false);
+            $('input[id*=btnSubmit]').hide();
+        });
 
         // Check the status of the selected payment transaction.
         function checkSelectedPayment() {
