@@ -622,7 +622,7 @@
             }
 
             // JavaScriptSerializer serializes .NET DateTime values as /Date(milliseconds)/.
-            var dotNetDate = /\\/Date\\((-?\\d+)\\)\\//.exec(String(value));
+            var dotNetDate = /\/Date\((-?\d+)\)\//.exec(String(value));
             var date = dotNetDate
                 ? new Date(parseInt(dotNetDate[1], 10))
                 : new Date(value);
