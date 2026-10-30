@@ -198,19 +198,15 @@
 
                                                     <br />
 
-                                                    <!-- Existing Submit Button -->
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-
-                                                            <asp:Button
-                                                                ID="btnSubmit"
-                                                                Text="Submit"
-                                                                runat="server"
-                                                                OnClick="btnSubmit_Click"
-                                                                CssClass="btn btn-success"
-                                                                Style="display: none;" />
-
-                                                        </div>
+                                                    <!-- Hidden server button preserves the existing SBI double-verification and receipt flow. -->
+                                                    <div style="display:none;">
+                                                        <asp:Button
+                                                            ID="btnSubmit"
+                                                            Text="Submit"
+                                                            runat="server"
+                                                            OnClick="btnSubmit_Click"
+                                                            CssClass="btn btn-success"
+                                                            Style="display: none;" />
                                                     </div>
 
                                                 </contenttemplate>
@@ -559,11 +555,18 @@
 
                     $('#lblMessage')
                         .show()
-                        .text(
-                            'Please click Submit to verify the selected payment.'
-                        );
+                        .text('Checking the selected payment with SBI/JEGRAS. Please wait...');
 
-                    $('input[id*=btnSubmit]').show();
+                    // Automatically post back to the existing server-side SBI verification
+                    // handler, which performs double verification and generates the receipt.
+                    setTimeout(function () {
+                        var submitButton = document.querySelector('input[id*="btnSubmit"]');
+                        if (submitButton) {
+                            submitButton.click();
+                        } else {
+                            $('#lblMessage').text('Unable to start SBI payment verification. Please refresh and try again.');
+                        }
+                    }, 100);
 
                     break;
 
