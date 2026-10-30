@@ -32,12 +32,12 @@ public class Vehicle : IHttpHandler {
 
             case "GetPaymentHistory":
                 GetPaymentHistory(context);
-            break;
+                return;
 
             case "GetPaymentStatus":
 
                 string queryString =
-                    Convert.ToString(context.Request.QueryString["q"]);
+                    Convert.ToString(context.Request["q"]);
 
                 string applicationNumber = (queryString ?? "").Trim();
                 string strResult = string.Empty;
@@ -481,11 +481,35 @@ public class Vehicle : IHttpHandler {
                 }
             }
 
+            // Convert each DataRow to a plain dictionary. JavaScriptSerializer
+            // serializes dictionaries/lists reliably; it does not serialize
+            // DataTable objects directly in all ASP.NET versions.
+            List<Dictionary<string, object>> records =
+                new List<Dictionary<string, object>>();
+
+            foreach (DataRow dataRow in dt.Rows)
+            {
+                Dictionary<string, object> record =
+                    new Dictionary<string, object>();
+
+                foreach (DataColumn column in dt.Columns)
+                {
+                    record[column.ColumnName] =
+                        dataRow.IsNull(column) ? null : dataRow[column];
+                }
+
+                records.Add(record);
+            }
+
             JavaScriptSerializer serializer =
                 new JavaScriptSerializer();
 
+            context.Response.Clear();
             context.Response.StatusCode = 200;
-            context.Response.Write(serializer.Serialize(dt));
+            context.Response.ContentType = "application/json";
+            context.Response.ContentEncoding = Encoding.UTF8;
+            context.Response.TrySkipIisCustomErrors = true;
+            context.Response.Write(serializer.Serialize(records));
         }
         catch (Exception ex)
         {
