@@ -1,0 +1,401 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true"
+    CodeFile="JHTRANSPORT.master.cs"
+    Inherits="JHTRANSPORT" %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head runat="server">
+    <meta charset="utf-8" />
+    <title>Transport Department, Government of Jharkhand</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap 5 -->
+    <link href="assets/bootstrap-5.3.8/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="assets/global/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <asp:ContentPlaceHolder ID="head" runat="server" />
+
+    <style>
+        :root {
+            --gov-green-dark: #557A3D;
+            --gov-green: #5f8a48;
+            --gov-green-light: #7abf4e;
+            --menu-text: #ffffff;
+            --menu-hover: rgba(255,255,255,.15);
+            --login-btn: #f59e0b; /* amber */
+        }
+
+        /* ================= BASE ================= */
+        body {
+            font-family: "Inter", system-ui;
+            background: #f8f9fa;
+        }
+
+        /* ================= HEADER ================= */
+
+        .gov-header {
+            background: linear-gradient( 135deg, #557A3D 0%, #5f8a48 55%, #4e73df 100% );
+            color: #fff;
+            padding: 8px 24px;
+            border-bottom: 1px solid rgba(255,255,255,.15);
+        }
+
+            .gov-header * {
+                color: #fff !important;
+            }
+
+        /* Dark mode (same as Login page) */
+        body.dark .gov-header {
+            background: linear-gradient( 135deg, #1e293b 0%, #24324a 55%, #1e40af 100% );
+        }
+
+        .gov-title-1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .gov-title-2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .gov-title-3 {
+            font-size: 14px;
+            opacity: .85;
+        }
+
+
+
+        /* ================= NAVBAR FIX ================= */
+        .navbar,
+        .navbar-collapse,
+        .container {
+            overflow: visible !important;
+        }
+
+        /* ================= MENU ================= */
+        .menu, .menu ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+            .menu li {
+                position: relative;
+            }
+
+            /* TOP LEVEL */
+            .menu > li > a {
+                padding: 14px 40px 14px 18px;
+                font-size: 16px;
+                font-weight: 600;
+                color: #1f2937;
+                display: block;
+                text-decoration: none;
+            }
+
+                .menu > li > a:hover {
+                    background: var(--gov-green);
+                    color: #fff;
+                }
+
+            /* DROPDOWN */
+            .menu ul {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                min-width: 360px;
+                background: linear-gradient(135deg, var(--gov-green-dark), var(--gov-green));
+                border-radius: 10px;
+                box-shadow: 0 12px 30px rgba(0,0,0,.25);
+                z-index: 9999;
+            }
+
+                .menu ul a {
+                    padding: 10px 40px 10px 16px;
+                    color: var(--menu-text);
+                    display: block;
+                    font-size: 14px;
+                    text-decoration: none;
+                }
+
+                    .menu ul a:hover {
+                        background: var(--menu-hover);
+                    }
+
+                /* MULTI LEVEL */
+                .menu ul li > ul {
+                    top: 0;
+                    left: 100%;
+                }
+
+        /* DESKTOP HOVER */
+        @media (min-width: 992px) {
+            .menu li:hover > ul {
+                display: block;
+            }
+        }
+
+        /* MOBILE */
+        @media (max-width: 991px) {
+            .menu ul {
+                position: static;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .menu li.open > ul {
+                display: block;
+            }
+        }
+
+        /* ================= ARROWS (CLEAN CHEVRONS) ================= */
+
+        /* Base */
+        .menu li > a {
+            position: relative;
+        }
+
+        /* TOP LEVEL: ▼ */
+        .menu > li:has(ul) > a::after {
+            content: "";
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid #1f2937;
+            border-bottom: 2px solid #1f2937;
+            transform: translateY(-50%) rotate(45deg);
+            transition: transform .25s ease;
+        }
+
+        /* SUB LEVEL: › */
+        .menu ul li:has(ul) > a::after {
+            content: "";
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid rgba(255,255,255,.85);
+            border-bottom: 2px solid rgba(255,255,255,.85);
+            transform: translateY(-50%) rotate(-45deg);
+            transition: transform .25s ease;
+        }
+
+        /* ROTATION */
+        @media (min-width: 992px) {
+            .menu > li:hover > a::after {
+                transform: translateY(-50%) rotate(225deg);
+            }
+
+            .menu ul li:hover > a::after {
+                transform: translateY(-50%) rotate(45deg);
+            }
+        }
+
+        .menu li.open > a::after {
+            transform: translateY(-50%) rotate(225deg);
+        }
+
+        /* ================= FOOTER ================= */
+        .page-footer {
+            background: linear-gradient(135deg, #557A3D 0%, #5f8a48 55%, #4e73df 100%);
+            color: #fff;
+            font-size: 13px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        body.dark .page-footer {
+            background: linear-gradient(135deg, #1e293b 0%, #24324a 55%, #1e40af 100%);
+        }
+
+
+
+        /* ================= LOGIN BUTTON ANIMATION ================= */
+        .login-btn {
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.25s ease;
+        }
+
+            .login-btn .login-icon {
+                transition: transform 0.3s ease;
+            }
+
+            /* Icon slides slightly on hover */
+            .login-btn:hover .login-icon {
+                transform: translateX(4px);
+            }
+
+            /* Subtle lift effect */
+            .login-btn:hover {
+                background: rgba(255,255,255,.15);
+                transform: translateY(-1px);
+            }
+    </style>
+
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <header class="gov-header px-4 py-2 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <img src="assets/img/logo.png" height="48" class="me-3" />
+            <div>
+                <div style="font-size: 20px; font-weight: 700;">Government of Jharkhand</div>
+                <div style="font-size: 16px; font-weight: 600;">Transport Department</div>
+                <div style="font-size: 12px;">Online State Permit System</div>
+            </div>
+        </div>
+        <a href="Login.aspx"
+            class="btn btn-outline-light btn-sm d-flex align-items-center gap-2 login-btn"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom"
+            title="Click to Login">
+            <i class="fa fa-sign-in-alt login-icon"></i>
+            <span>Login</span>
+        </a>
+    </header>
+
+    <nav class="navbar navbar-expand-lg bg-white border-bottom">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu">☰</button>
+            <div class="collapse navbar-collapse" id="mainMenu">
+                <ul id="ulMenu" runat="server"
+                    class="menu navbar-nav me-auto"
+                    role="menubar">
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1">
+        <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" />
+    </main>
+
+    <footer class="page-footer mt-auto">
+        All Rights Reserved by Government of Jharkhand, India.
+    </footer>
+
+    <script src="assets/bootstrap-5.3.8/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.innerWidth <= 991) {
+                document.querySelectorAll('.menu > li > a').forEach(function (a) {
+                    a.addEventListener('click', function (e) {
+                        const li = this.parentElement;
+                        const sub = li.querySelector('ul');
+                        if (sub) {
+                            e.preventDefault();
+                            li.classList.toggle('open');
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const menuLinks = document.querySelectorAll('.menu li > a');
+
+            menuLinks.forEach(function (link) {
+                const li = link.parentElement;
+                const submenu = li.querySelector('ul');
+
+                if (submenu) {
+                    // ARIA attributes
+                    link.setAttribute('aria-haspopup', 'true');
+                    link.setAttribute('aria-expanded', 'false');
+
+                    // Keyboard support
+                    link.addEventListener('keydown', function (e) {
+
+                        switch (e.key) {
+                            case 'Enter':
+                            case ' ':
+                                e.preventDefault();
+                                toggleMenu(li, link);
+                                break;
+
+                            case 'Escape':
+                                closeMenu(li, link);
+                                break;
+
+                            case 'ArrowRight':
+                                if (submenu) {
+                                    e.preventDefault();
+                                    openMenu(li, link);
+                                }
+                                break;
+
+                            case 'ArrowLeft':
+                                e.preventDefault();
+                                closeMenu(li, link);
+                                break;
+                        }
+                    });
+
+                    // Mobile click
+                    link.addEventListener('click', function (e) {
+                        if (window.innerWidth <= 991) {
+                            e.preventDefault();
+                            toggleMenu(li, link);
+                        }
+                    });
+                }
+            });
+
+            function openMenu(li, link) {
+                li.classList.add('open');
+                link.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeMenu(li, link) {
+                li.classList.remove('open');
+                link.setAttribute('aria-expanded', 'false');
+            }
+
+            function toggleMenu(li, link) {
+                const isOpen = li.classList.contains('open');
+                link.setAttribute('aria-expanded', (!isOpen).toString());
+                li.classList.toggle('open');
+            }
+
+            // Close menu when focus leaves
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.menu')) {
+                    document.querySelectorAll('.menu li.open').forEach(function (li) {
+                        const a = li.querySelector(':scope > a');
+                        li.classList.remove('open');
+                        if (a) a.setAttribute('aria-expanded', 'false');
+                    });
+                }
+            });
+
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(
+                document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            );
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+
+
+    <asp:ContentPlaceHolder ID="ContentPlaceHolder2" runat="server" />
+
+</body>
+</html>

@@ -1,0 +1,265 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using System.Data.SqlClient;
+using SoftEra.JHT.Infrastructure;
+using System.IO;
+using System.Configuration;
+using System.Text;
+
+public partial class RTA_PERMIT_RENEW_APPLICATION_APPROVAL : System.Web.UI.Page
+{
+    //private static string ID;
+  
+    protected List<QueryString> QueryStr = new List<QueryString>();
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            if (string.IsNullOrEmpty(Request.QueryString["q"]))
+            {
+                ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "alert('You are not permitted to access this page'); windows.location = 'RTA_Dashboard.aspx'", true);
+                return;
+            }
+            try
+            {
+                String queryString = CryptorEngine.Decrypt(Convert.ToString(Context.Request.QueryString["q"]), true);
+                foreach (String str in queryString.Split(new Char[] { '&' }))
+                {
+                    QueryString qs = new QueryString();
+                    qs.Name = str.Split(new Char[] { '=' })[0];
+                    qs.Value = str.Split(new Char[] { '=' })[1];
+                    QueryStr.Add(qs);
+                }
+
+                QueryString IDx = QueryStr.Where(l => l.Name == "ID").FirstOrDefault(); // CryptorEngine.Decrypt(Convert.ToString(Context.Request.QueryString["ID"]), true);
+             
+                ID.Value = IDx.Value;
+                SqlParameter[] parameters = new SqlParameter[3];
+                parameters[0] = new SqlParameter("@ID", ID.Value);
+                parameters[1] = new SqlParameter("@EMPLOYEE_ID", Session["EMPLOYEE_ID"]);
+                parameters[2] = new SqlParameter("@MODE", "PERMIT_RENEWAL_APPLICATION_VERIFY_LIST_BYID");
+                DataSet ds = SQLHelper.ExecuteDataset(SQLHelper.GetConnString(), CommandType.StoredProcedure, "RTA_SP_MSTR_LIST_BYID", parameters);
+                
+                 
+                        DataTable dt1 = ds.Tables[0];
+                        DataTable dt2 = ds.Tables[1];
+                        DataTable dt3 = ds.Tables[2];
+                        StringBuilder sb = new StringBuilder();
+                        if (dt1.Rows.Count > 0)
+                        {
+                            string APPLICATION_STATUS = dt1.Rows[0]["APPLICATION_STATUS"].ToString();
+
+                            string Payment_status = dt1.Rows[0]["PAYMENT_STATUS"].ToString();
+                            if (Payment_status == "Unpaid")
+                            {
+                                btnSave.Visible = false;
+                            }
+                            else
+                            {
+                                btnSave.Visible = true;
+                                if (APPLICATION_STATUS == "Issued")
+                                {
+                                    btnSave.Visible = false;
+
+                                }
+
+                            }
+                            
+                            lblApplicationNo.Text = dt1.Rows[0]["APPLICATION_NUMBER"].ToString();
+                            lblPermitType.Text = dt1.Rows[0]["PERMIT_TYPE"].ToString();
+                            lblPermitNo.Text = dt1.Rows[0]["PERMIT_NUMBER"].ToString();
+                            lblValidupto.Text = dt1.Rows[0]["VALID_UP_TO"].ToString();
+                            VORegNumber.Text = dt1.Rows[0]["REGISTRATION_NUMBER"].ToString();
+                            VOName.Text = dt1.Rows[0]["OWNER_NAME"].ToString();
+                            VOCareOf.Text = dt1.Rows[0]["CARE_OF"].ToString();
+                            VOPresentAddress.Text = dt1.Rows[0]["PRESENT_ADDRESS"].ToString();
+                            VOPermanentAddress.Text = dt1.Rows[0]["PERMANENT_ADDRESS"].ToString();
+                            VOMobileNo.Text = dt1.Rows[0]["MOBILE_NUMBER"].ToString();
+                            VChassisNumber.Text = dt1.Rows[0]["CHASIS_NUMBER"].ToString();
+                            VEngineNumber.Text = dt1.Rows[0]["ENGINE_NUMBER"].ToString();
+                            VTax.Text = dt1.Rows[0]["TAX_PAID_UPTO"].ToString();
+                            VFitness.Text = dt1.Rows[0]["FITNESS_VALID_UPTO"].ToString();
+                            VType.Text = dt1.Rows[0]["VEHICLE_CLASS_TYPE"].ToString();
+                            VInsuranceCmp.Text = dt1.Rows[0]["INSURANCE_COMPANY"].ToString();
+                            VInsuranceNo.Text = dt1.Rows[0]["INSURANCE_POLICY_NO"].ToString();
+                            VInsuranceUpto.Text = dt1.Rows[0]["INSURANCE_UPTO"].ToString();
+                            RouteHDRInfo.Text = dt1.Rows[0]["ROUTE"].ToString();
+                            lblPermitFees.Text = dt1.Rows[0]["FEE"].ToString();
+                            lblPaymentStatus.Text = dt1.Rows[0]["PAYMENT_STATUS"].ToString();
+
+                        }
+                        if (dt2.Rows.Count > 0)
+                        {
+                            Int32 length = dt2.Rows.Count - 1;
+                            sb.Append("<table class='table table-striped table-bordered table-hover'>");
+                            sb.Append("<thead>");
+                            sb.Append("<tr>");
+                            sb.Append("<th colspan='3' style='text-align:center;'> Up </th>");
+                            sb.Append("<th>  </th>");
+                            sb.Append("<th colspan='3' style='text-align:center;'> Down </th>");
+                            sb.Append("</tr>");
+                            sb.Append("<tr>");
+                            sb.Append("<th> Route </th>");
+                            sb.Append("<th> Arrival </th>");
+                            sb.Append("<th> Departure </th>");
+                            sb.Append("<th>  </th>");
+                            sb.Append("<th> Route </th>");
+                            sb.Append("<th> Arrival </th>");
+                            sb.Append("<th> Departure </th>");
+                            sb.Append("</tr>");
+                            sb.Append("</thead>");
+                            sb.Append("<tbody id='tbdRouteInfo'>");
+                            for (int i = 0; i < dt2.Rows.Count; i++)
+                            {
+                                if (i == 0)
+                                {
+                                    sb.Append("<tr id='tr_" + Convert.ToString(dt2.Rows[i]["S_NO"]) + "'>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["VIA_UP_CITY"]) + "</label></td>");
+                                    sb.Append("<td> ..... </td>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["UP_DEP_TIME"]) + "</label></td>");
+                                    sb.Append("<td></td>");
+                                    sb.Append("<td>" + Convert.ToString(dt2.Rows[i]["VIA_DOWN_CITY"]) + "</td>");
+                                    sb.Append("<td> ..... </td>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["DOWN_DEP_TIME"]) + "</label></td>");
+                                    sb.Append("</tr>");
+                                }
+                                else if (i == length)
+                                {
+                                    sb.Append("<tr id='tr_" + Convert.ToString(dt2.Rows[i]["S_NO"]) + "'>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["VIA_UP_CITY"]) + "</label></td>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["UP_ARR_TIME"]) + "</label></td>");
+                                    sb.Append("<td> ..... </td>");
+                                    sb.Append("<td></td>");
+                                    sb.Append("<td>" + Convert.ToString(dt2.Rows[i]["VIA_DOWN_CITY"]) + "</td>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["DOWN_ARR_TIME"]) + "</label></td>");
+                                    sb.Append("<td> ..... </td>");
+                                    sb.Append("</tr>");
+
+                                }
+                                else
+                                {
+                                    sb.Append("<tr id='tr_" + Convert.ToString(dt2.Rows[i]["S_NO"]) + "'>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["VIA_UP_CITY"]) + "</label></td>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["UP_ARR_TIME"]) + "</label></td>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["UP_DEP_TIME"]) + "</label></td>");
+                                    sb.Append("<td></td>");
+                                    sb.Append("<td>" + Convert.ToString(dt2.Rows[i]["VIA_DOWN_CITY"]) + "</td>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["DOWN_ARR_TIME"]) + "</label></td>");
+                                    sb.Append("<td><label>" + Convert.ToString(dt2.Rows[i]["DOWN_DEP_TIME"]) + "</label></td>");
+                                    sb.Append("</tr>");
+                                }
+
+                            }
+                            sb.Append("<tbody>");
+                            sb.Append("</table>");
+
+                            RouteTimeInfo.InnerHtml = sb.ToString();
+
+                            foreach(DataRow dr in dt3.Rows)
+                            {
+                                if (Convert.ToString(dr["UPLOAD_HEADS"]) == "RC")
+                                {
+                                  
+                                    string newstr = "RTAUploadedFiles/" + Convert.ToString(dr["FILE_NAME"]).Replace("@@---@@", string.Empty);
+                                    string filename = "RC_" + Convert.ToString(dr["FILE_NAME"]).Substring(Convert.ToString(dr["FILE_NAME"]).LastIndexOf('@')+1);
+                                    string strlink = string.Format("<a href ='{0}' target='_blank' title='download'>{1}  </a>", newstr, "Click here to download");
+                                    divrcfile.InnerHtml = strlink;
+
+                                }
+
+                                if (Convert.ToString(dr["UPLOAD_HEADS"]) == "INSURANCE")
+                                {
+                                    string newstr = "RTAUploadedFiles/"  + Convert.ToString(dr["FILE_NAME"]).Replace("@@---@@", string.Empty);
+                                    string strlink = string.Format("<a href ='{0}' target='_blank' title='download'>{1}  </a>", newstr, "Click here to download");
+                                    divinsurFile.InnerHtml = strlink;
+
+                                }
+                             
+                                if (Convert.ToString(dr["UPLOAD_HEADS"]) == "POLLUTION")
+                                {
+                                    string newstr = "RTAUploadedFiles/"  + Convert.ToString(dr["FILE_NAME"]).Replace("@@---@@", string.Empty);
+                                    string strlink = string.Format("<a href ='{0}' target='_blank' title='download'>{1}  </a>", newstr, "Click here to download");
+                                    divrollution.InnerHtml = strlink;
+                                }
+                              
+                                if (Convert.ToString(dr["UPLOAD_HEADS"]) == "FITNESS")
+                                {
+                                    string newstr = "RTAUploadedFiles/"  + Convert.ToString(dr["FILE_NAME"]).Replace("@@---@@", string.Empty);
+                                    string strlink = string.Format("<a href ='{0}' target='_blank' title='download'>{1}  </a>", newstr, "Click here to download");
+                                    divfitness.InnerHtml = strlink;
+                                }
+                                if (Convert.ToString(dr["UPLOAD_HEADS"]) == "PERMIT")
+                                {
+                                    string newstr = "RTAUploadedFiles/"  + Convert.ToString(dr["FILE_NAME"]).Replace("@@---@@", string.Empty);
+                                    string strlink = string.Format("<a href ='{0}' target='_blank' title='download'>{1}  </a>", newstr, "Click here to download");
+                                    divPermit.InnerHtml = strlink;
+                                }
+                               
+
+                            }
+
+
+
+
+                        }
+
+                    
+
+              
+            }
+
+            catch (Exception ex)
+            {
+                String Message = ex.Message;
+                Message = Message.Replace("\r", " ").Replace("\n", " ").Replace("'", "");
+                ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "alert('"+Message+"');window.location ='RTA-PERMIT-RENEW-APPLICATION-APPROVAL-LIST.aspx'", true);
+
+            }
+
+
+        }
+    }
+    protected void btnCancel_Click(object sender, EventArgs e)
+    {
+        Response.Redirect("RTA-PERMIT-RENEW-APPLICATION-APPROVAL-LIST.aspx");
+
+    }
+    protected void btnSave_Click(object sender, EventArgs e)
+    {
+        ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "$('#confirm').modal('show');", true);
+    }
+    protected void btnYes_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            SqlParameter[] parameters = new SqlParameter[6];
+            parameters[0] = new SqlParameter("@EMPLOYEE_ID", Convert.ToString(Session["EMPLOYEE_ID"]));
+            parameters[1] = new SqlParameter("@STATE", ID.Value);
+            parameters[2] = new SqlParameter("@STATUS", DBNull.Value);
+            parameters[3] = new SqlParameter("@TYPE", DBNull.Value);
+            parameters[4] = new SqlParameter("@OBJECTIONDATE", DBNull.Value);
+            parameters[5] = new SqlParameter("@MODE","APPROVED");
+            SQLHelper.ExecuteNonQuery(SQLHelper.GetConnString(), CommandType.StoredProcedure, "RTA_RENEWAL_OF_APPROVAL", parameters);
+            ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "alert('Successfully Issued');window.location ='RTA-PERMIT-RENEW-APPLICATION-APPROVAL-LIST.aspx'", true);
+        }
+        catch (Exception ex)
+        {
+            String Message = ex.Message;
+            Message = Message.Replace("\r", " ").Replace("\n", " ").Replace("'", "");
+            ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "alert('" + Message + "');window.location ='RTA-PERMIT-RENEW-APPLICATION-APPROVAL-LIST.aspx'", true);
+
+        }
+
+    }
+}
+    
+    
+
+
+
+    

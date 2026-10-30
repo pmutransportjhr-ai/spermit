@@ -1,0 +1,1209 @@
+/* ==========================================================================
+   PUBLIC PORTAL DESIGN SYSTEM (JHARKHAND TRANSPORT COLOR THEME)
+   Transport Department, Government of Jharkhand
+   ========================================================================== */
+
+:root {
+    /* Color Palette matching Jharkhand Transport Portal */
+    --primary-green: #5c9429;      /* Vibrant Olive/Leaf Green (Nav & Header) */
+    --dark-green: #46741d;         /* Dark Olive Green (Nav Active/Hover & Submenu) */
+    --mid-green: #5c9429;
+    --brand-green: #5c9429;
+    --bright-green: #68a62e;
+    --light-green: #f2f8eb;
+    --mint-green: #e5f2d8;
+    --emerald-glow: #7bbd38;
+    --transport-blue: #0070c0;     /* Transport Dept & System Title Blue */
+    --login-teal: #008899;         /* Teal Login Button */
+    --seeall-cyan: #00bcd4;         /* See All Cyan Button */
+    --accent-amber: #d97706;
+    
+    /* Neutral Tones */
+    --bg-canvas: #f5f7f5;
+    --card-bg: #ffffff;
+    --text-dark: #212529;
+    --text-muted: #6c757d;
+    --border-color: #dee2e6;
+    
+    /* Shadows & Radii */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 12px 28px rgba(92, 148, 41, 0.15);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base resets & typography */
+body {
+    background-color: var(--bg-canvas) !important;
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    color: var(--text-dark);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* ================= 1. HEADER & TOPBAR ================= */
+.page-header {
+    background: #ffffff;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    z-index: 100;
+}
+
+.page-header-top {
+    padding: 14px 0;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-brand-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.page-logo img {
+    height: 72px;
+    width: auto;
+    object-fit: contain;
+    transition: var(--transition-fast);
+}
+
+.page-logo img:hover {
+    transform: scale(1.02);
+}
+
+.title-center {
+    text-align: center;
+}
+
+.title-center1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #5c9429 !important;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.title-center2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0070c0 !important;
+}
+
+.title-center3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0070c0 !important;
+}
+
+/* Header Login Button - Blue-to-Green Gradient matching screenshot */
+.login-btn {
+    background: linear-gradient(135deg, #0070c0 0%, #5c9429 100%) !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    padding: 9px 24px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 14px rgba(0, 112, 192, 0.3) !important;
+    transition: var(--transition-fast) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.login-btn:hover {
+    background: linear-gradient(135deg, #005fa6 0%, #4c7b22 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(0, 112, 192, 0.45) !important;
+    color: #ffffff !important;
+}
+
+/* ================= 2. MODERN NAVIGATION BAR ================= */
+.custom-header-menu {
+    background: linear-gradient(90deg, #5c9429 0%, #4c7b22 100%) !important;
+    min-height: 50px;
+    box-shadow: 0 4px 16px rgba(92, 148, 41, 0.25);
+    position: relative;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.main-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.main-menu > li {
+    position: relative;
+}
+
+.main-menu > li > a {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 15px 22px;
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 14.5px;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    border-bottom: 3px solid transparent;
+}
+
+.main-menu > li > a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 80%;
+    height: 3px;
+    background: #ffffff;
+    border-radius: 4px;
+    transition: transform 0.25s ease-in-out;
+}
+
+.main-menu > li:hover > a::after,
+.main-menu > li.active > a::after,
+.main-menu > li.open > a::after {
+    transform: translateX(-50%) scaleX(1);
+}
+
+.main-menu > li:hover > a,
+.main-menu > li.active > a,
+.main-menu > li.open > a {
+    background: rgba(0, 0, 0, 0.15) !important;
+    color: #ffffff !important;
+}
+
+.menu-arrow {
+    font-size: 11px;
+    transition: transform 0.25s ease-in-out;
+}
+
+.main-menu > li:hover .menu-arrow {
+    transform: rotate(180deg);
+}
+
+/* Modern Submenu Dropdown Card & Multi-Level Support for Metronic & Standard Dropdowns */
+.main-menu li,
+.dropdown-submenu,
+li.dropdown-submenu,
+li.dropdown {
+    position: relative !important;
+}
+
+/* Base state for Level 1 Dropdown Menus */
+.main-menu li ul,
+.dropdown-menu,
+ul.dropdown-menu {
+    display: block !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    background: #ffffff !important;
+    min-width: 290px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    padding: 8px 0 !important;
+    list-style: none !important;
+    z-index: 1000 !important;
+    border: 1px solid rgba(92, 148, 41, 0.18) !important;
+    overflow: visible !important;
+    
+    /* Smooth Transition & Invisible Hover Bridge */
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transform: translateY(8px) !important;
+    transition: opacity 0.22s ease-out, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s !important;
+}
+
+/* Invisible Hover Bridge to prevent gap flickering */
+.main-menu > li > ul::before,
+.dropdown-menu::before {
+    content: '' !important;
+    position: absolute !important;
+    top: -10px !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 12px !important;
+    background: transparent !important;
+}
+
+/* Active Hover Opening for Submenus (Level 1, Level 2, Level 3, Level 4+) */
+.main-menu li:hover > ul,
+.main-menu li:hover > .dropdown-menu,
+.dropdown-submenu:hover > .dropdown-menu,
+.dropdown-submenu:hover > ul,
+.dropdown-submenu.open > .dropdown-menu,
+li.dropdown-submenu:hover > ul,
+li.dropdown-submenu:hover > .dropdown-menu,
+li:hover > ul,
+li:hover > .dropdown-menu {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+}
+
+/* Level 2, Level 3, Level 4+ Flyout Submenus (Smooth horizontal slide) */
+.main-menu li ul li ul,
+.dropdown-menu .dropdown-menu,
+.dropdown-submenu > .dropdown-menu {
+    top: -8px !important;
+    left: 100% !important;
+    margin-top: 0 !important;
+    z-index: 1010 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.22) !important;
+    
+    /* Smooth Flyout Transition */
+    transform: translateX(10px) translateY(0) !important;
+}
+
+/* Hover flyout state for Level 2, Level 3, Level 4+ */
+.main-menu li ul li:hover > ul,
+.dropdown-submenu:hover > .dropdown-menu {
+    transform: translateX(0) translateY(0) !important;
+}
+
+.main-menu li ul li,
+.dropdown-menu > li {
+    position: relative !important;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.main-menu li ul li:last-child,
+.dropdown-menu > li:last-child {
+    border-bottom: none;
+}
+
+.main-menu li ul li a,
+.dropdown-menu > li > a,
+.dropdown-menu li a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 20px !important;
+    color: var(--text-dark) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.2px !important;
+    text-decoration: none !important;
+    transition: background-color 0.2s ease, color 0.2s ease, padding 0.2s ease, border-left-color 0.2s ease !important;
+    border-left: 4px solid transparent !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+.main-menu li ul li a:hover,
+.main-menu li ul li:hover > a,
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li:hover > a,
+.dropdown-submenu:hover > a {
+    background: #f2f8eb !important;
+    color: #46741d !important;
+    border-left-color: #5c9429 !important;
+    padding-left: 24px !important;
+}
+
+/* Mobile Toggle Button */
+.menu-toggle {
+    display: none;
+    padding: 12px 18px;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-sm);
+    margin: 8px 0;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 991px) {
+    .menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .main-menu {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background: #5c9429 !important;
+        padding: 10px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .main-menu.menu-open {
+        display: flex !important;
+    }
+    
+    .main-menu > li {
+        width: 100%;
+    }
+    
+    .main-menu > li > a {
+        padding: 12px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .main-menu li ul {
+        position: static !important;
+        box-shadow: none !important;
+        background: #46741d !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding-left: 15px !important;
+    }
+
+    .main-menu li ul li a {
+        color: #ffffff !important;
+    }
+    
+    .main-menu li ul li a:hover {
+        background: rgba(0, 0, 0, 0.15) !important;
+        color: #ffffff !important;
+    }
+}
+
+/* ================= 3. CARDS & HERO SERVICES ================= */
+.service-card-modern {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px 20px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-fast);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.service-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: #5c9429;
+}
+
+.service-card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #f2f8eb;
+    color: #5c9429;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 14px;
+    transition: var(--transition-fast);
+}
+
+.service-card-modern:hover .service-card-icon {
+    background: #5c9429;
+    color: #ffffff;
+    transform: scale(1.08);
+}
+
+.service-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #5c9429;
+    margin: 0;
+}
+
+/* ================= 4. PROCESS STEPS ================= */
+.process-step-box {
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: var(--transition-fast);
+}
+
+.process-step-box:hover {
+    box-shadow: var(--shadow-md);
+    border-color: #5c9429;
+}
+
+.process-number {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #5c9429;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+/* Notice Card Styling matching screenshot */
+.notice-card {
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    border: 1px solid #dcdcdc;
+    box-shadow: var(--shadow-sm);
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.notice-card-header {
+    background: #f5f5f5 !important;
+    color: #212529 !important;
+    padding: 14px 20px;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.notice-card-footer {
+    padding: 10px 15px;
+    background: #ffffff;
+    border-top: 1px solid #e0e0e0;
+    text-align: right;
+}
+
+.notice-card-footer .btn-success,
+.notice-card-footer a {
+    background: #00bcd4 !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    padding: 6px 18px !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+}
+
+.notice-card-footer .btn-success:hover,
+.notice-card-footer a:hover {
+    background: #00acc1 !important;
+    color: #ffffff !important;
+}
+
+/* ================= 5. MODALS & PRELOADER ================= */
+.modal-content {
+    border-radius: var(--radius-md) !important;
+    border: none !important;
+    box-shadow: var(--shadow-lg) !important;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: #5c9429 !important;
+    color: #ffffff !important;
+    padding: 16px 24px !important;
+    border-bottom: none !important;
+}
+
+.modal-title {
+    font-weight: 700 !important;
+    font-size: 18px !important;
+    color: #ffffff !important;
+}
+
+.modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+#Loader, #loadingmessage {
+    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.4);
+}
+
+/* ================= 6. FOOTER ================= */
+.page-footer {
+    background: #5c9429 !important;
+    color: #ffffff !important;
+    padding: 0 !important;
+    font-size: 14px;
+    border-top: 4px solid #46741d !important;
+    margin-top: 50px !important;
+}
+
+.footer-top-section {
+    padding: 40px 0 30px;
+}
+
+.footer-brand h5 {
+    font-size: 18px;
+    letter-spacing: 0.3px;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.88) !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.footer-links a:hover {
+    color: #ffffff !important;
+    transform: translateX(4px);
+    text-decoration: underline !important;
+}
+
+.footer-bottom-bar {
+    background: rgba(0, 0, 0, 0.18) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding: 16px 0;
+}
+
+.scroll-to-top {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 999;
+}
+
+.scroll-to-top > i {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #5c9429;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    font-size: 18px;
+    transition: all 0.25s ease;
+}
+
+.scroll-to-top > i:hover {
+    background: #46741d;
+    transform: translateY(-4px);
+}
+
+/* ================= 7. PORTLETS & CONTAINERS ================= */
+.page-container {
+    padding-top: 20px;
+    padding-bottom: 30px;
+}
+
+.portlet.light, 
+.portlet.light.portlet-fit,
+.portlet.box {
+    background: var(--card-bg) !important;
+    border: 1px solid #dcdcdc !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-sm) !important;
+    margin-bottom: 24px !important;
+    overflow: hidden !important;
+    transition: var(--transition-fast) !important;
+}
+
+.portlet.light:hover,
+.portlet.light.portlet-fit:hover {
+    box-shadow: var(--shadow-md) !important;
+}
+
+.portlet-title {
+    background: #f8f9fa !important;
+    padding: 14px 20px !important;
+    border-bottom: 2px solid #5c9429 !important;
+    margin-bottom: 0 !important;
+    min-height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.portlet-title,
+.portlet-title .caption,
+.portlet-title .caption-subject,
+.portlet-title .caption span,
+.portlet-title .caption div,
+.portlet-title .caption *,
+.portlet.box .portlet-title,
+.portlet.box .portlet-title > .caption,
+.portlet.box.green .portlet-title,
+.portlet.box.green .portlet-title > .caption,
+.portlet.box.blue .portlet-title,
+.portlet.box.blue .portlet-title > .caption,
+.portlet.light .portlet-title,
+.portlet.light .portlet-title > .caption,
+.caption,
+.caption-subject,
+.caption-subject.font-red,
+.caption-subject.font-white,
+.caption-subject.font-green {
+    color: #5c9429 !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+.portlet-title .caption {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 0 !important;
+}
+
+.portlet-title .caption i,
+.portlet-title .caption [class*="icon-"],
+.portlet-title .caption .fa,
+.portlet.box.green > .portlet-title > .caption > i,
+.portlet.box.blue > .portlet-title > .caption > i {
+    color: #5c9429 !important;
+    font-size: 18px !important;
+}
+
+.portlet-title .tools a,
+.portlet-title .tools a.collapse,
+.portlet-title .tools a.expand {
+    color: #5c9429 !important;
+    font-size: 14px !important;
+}
+
+.caption-subject {
+    color: #5c9429 !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.3px !important;
+    text-transform: uppercase !important;
+}
+
+.portlet-body {
+    padding: 24px !important;
+    background: #ffffff !important;
+}
+
+.portlet-body.form {
+    padding: 24px !important;
+}
+
+/* ================= 8. BREADCRUMBS ================= */
+.page-breadcrumb.breadcrumb,
+.breadcrumb {
+    background: #ffffff !important;
+    padding: 12px 20px !important;
+    border-radius: var(--radius-md) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow-sm) !important;
+    margin-bottom: 22px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !wrap;
+    list-style: none !important;
+}
+
+.page-breadcrumb li {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.page-breadcrumb li a {
+    color: var(--mid-green) !important;
+    text-decoration: none !important;
+    transition: var(--transition-fast) !important;
+    font-weight: 600 !important;
+}
+
+.page-breadcrumb li a:hover {
+    color: var(--primary-green) !important;
+    text-decoration: underline !important;
+}
+
+.page-breadcrumb li i.fa-circle,
+.page-breadcrumb li .fa-angle-right {
+    font-size: 7px !important;
+    color: var(--text-muted) !important;
+    margin: 0 10px !important;
+}
+
+.page-breadcrumb li span {
+    color: var(--text-dark) !important;
+    font-weight: 600 !important;
+}
+
+/* ================= 9. FORM CONTROLS & INPUTS ================= */
+.form-group {
+    margin-bottom: 20px !important;
+}
+
+label, .control-label, form label {
+    font-weight: 600 !important;
+    color: var(--primary-green) !important;
+    margin-bottom: 6px !important;
+    font-size: 13.5px !important;
+    display: inline-block;
+}
+
+.form-control,
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+select,
+textarea {
+    border-radius: var(--radius-sm) !important;
+    border: 1.5px solid #d1d5db !important;
+    padding: 9px 14px !important;
+    font-size: 14px !important;
+    color: var(--text-dark) !important;
+    background-color: #ffffff !important;
+    transition: var(--transition-fast) !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+    min-height: 42px;
+}
+
+.form-control:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--mid-green) !important;
+    box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.15) !important;
+    outline: none !important;
+    background-color: #ffffff !important;
+}
+
+span.red, .red, span[style*="color:red"], span[style*="color:Red"] {
+    color: #dc2626 !important;
+    font-weight: 700 !important;
+    margin-left: 3px !important;
+}
+
+/* Select2 Enhancements */
+.select2-container--bootstrap .select2-selection--single,
+.select2-container .select2-choice {
+    border-radius: var(--radius-sm) !important;
+    border: 1.5px solid #d1d5db !important;
+    height: 42px !important;
+    padding-top: 5px !important;
+}
+
+.select2-container--bootstrap.select2-container--focus .select2-selection--single {
+    border-color: var(--mid-green) !important;
+    box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.15) !important;
+}
+
+/* ================= 10. BUTTONS & ACTIONS ================= */
+.btn {
+    border-radius: var(--radius-sm) !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    padding: 9px 22px !important;
+    transition: var(--transition-fast) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+}
+
+/* Primary Green Buttons */
+.btn.green, 
+.btn-success, 
+.btn.green-meadow, 
+.btn.green-sharp,
+.btn.green-haze,
+.btn.btn-primary {
+    background: linear-gradient(135deg, var(--mid-green) 0%, var(--brand-green) 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(45, 106, 79, 0.25) !important;
+}
+
+.btn.green:hover, 
+.btn-success:hover, 
+.btn.green-meadow:hover, 
+.btn.green-sharp:hover,
+.btn.btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(45, 106, 79, 0.38) !important;
+    color: #ffffff !important;
+}
+
+/* Red / Danger Buttons */
+.btn.red, 
+.btn-danger, 
+.btn.red-mint, 
+.btn.red-sunglo {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25) !important;
+}
+
+.btn.red:hover, 
+.btn-danger:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.38) !important;
+    color: #ffffff !important;
+}
+
+/* Blue / Info Buttons */
+.btn.btn-info, 
+.btn.blue, 
+.btn.blue-sharp {
+    background: linear-gradient(135deg, var(--transport-blue) 0%, #005696 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 110, 189, 0.25) !important;
+}
+
+.btn.btn-info:hover, 
+.btn.blue:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(0, 110, 189, 0.38) !important;
+    color: #ffffff !important;
+}
+
+/* Default / Secondary Buttons */
+.btn.default, 
+.btn-secondary, 
+.btn-default {
+    background: #f3f4f6 !important;
+    color: var(--text-dark) !important;
+    border: 1px solid #d1d5db !important;
+}
+
+.btn.default:hover, 
+.btn-secondary:hover {
+    background: #e5e7eb !important;
+    color: var(--text-dark) !important;
+}
+
+/* ================= 11. DATA TABLES & GRIDVIEWS ================= */
+
+/* Ensure table wrappers expand to full container width and scroll horizontally if needed */
+.table-responsive,
+.table-scrollable,
+.dataTables_wrapper,
+.table-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 20px !important;
+    border-radius: var(--radius-md) !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: var(--shadow-sm) !important;
+    clear: both !important;
+}
+
+/* Make sure portlet containers do NOT clip scrolling table wrappers */
+.portlet-body,
+.portlet-body.form,
+.page-content,
+.page-content-inner {
+    overflow: visible !important;
+}
+
+/* Allow table container columns (like col-md-10 in form-group) to use full 100% width for tables */
+.portlet-body .row > .col-md-10:has(table),
+.portlet-body .row > .col-md-10:has(.table-scrollable),
+.portlet-body .row > .col-md-10:has(.table-responsive),
+.portlet-body .form-group .col-md-10:has(table),
+.portlet-body .form-group .col-md-10:has(.table-scrollable),
+.portlet-body .form-group .col-md-10:has(.table-responsive),
+div[id*="RouteDiv"] .col-md-10 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Hide empty side spacer columns when wrapping tables */
+div[id*="RouteDiv"] .col-md-1:empty,
+.portlet-body .form-group > .col-md-1:empty,
+.portlet-body .row > .col-md-1:empty {
+    display: none !important;
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.table, 
+table.table, 
+.gridview,
+.table-bordered {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    background: #ffffff !important;
+    table-layout: auto !important;
+}
+
+.table th, 
+.table header, 
+th, 
+tr.header th,
+.table-bordered th {
+    background: linear-gradient(135deg, var(--primary-green), var(--mid-green)) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+    padding: 10px 12px !important;
+    border: none !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    white-space: normal !important;
+    word-break: normal !important;
+}
+
+.table td, 
+td,
+.table-bordered td {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    color: var(--text-dark) !important;
+    border-top: 1px solid #f1f5f9 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-left: none !important;
+    border-right: none !important;
+    vertical-align: middle !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+/* Align radio buttons, checkboxes and action inputs in table cells */
+.table td input[type="radio"],
+.table td input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer !important;
+    vertical-align: middle !important;
+    accent-color: #5c9429 !important;
+}
+
+.table td label {
+    margin-bottom: 0 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd),
+tr:nth-child(odd) {
+    background-color: #f8faf8 !important;
+}
+
+.table-hover tbody tr:hover,
+tr:hover {
+    background-color: #eef7f2 !important;
+    transition: var(--transition-fast) !important;
+}
+
+/* DataTables Pagination & Length Styling */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--mid-green) !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    border: none !important;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: var(--radius-sm) !important;
+    border: 1.5px solid #d1d5db !important;
+    padding: 6px 12px !important;
+}
+
+/* ================= 12. ALERTS & NOTIFICATIONS ================= */
+.alert {
+    border-radius: var(--radius-md) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    padding: 14px 20px !important;
+    border: none !important;
+    margin-bottom: 20px !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.alert-success {
+    background-color: #e8f5e9 !important;
+    color: var(--primary-green) !important;
+    border-left: 5px solid var(--emerald-glow) !important;
+}
+
+.alert-danger {
+    background-color: #fef2f2 !important;
+    color: #991b1b !important;
+    border-left: 5px solid #ef4444 !important;
+}
+
+.alert-warning {
+    background-color: #fffbe6 !important;
+    color: #92400e !important;
+    border-left: 5px solid #f59e0b !important;
+}
+
+.alert-info {
+    background-color: #eff6ff !important;
+    color: #1e40af !important;
+    border-left: 5px solid #3b82f6 !important;
+}
+
+.label, .badge {
+    border-radius: 50px !important;
+    padding: 6px 14px !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    letter-spacing: 0.3px !important;
+}
+
+.label-success, .badge-success {
+    background-color: #2e7d32 !important;
+    color: #ffffff !important;
+}
+
+.label-danger, .badge-danger {
+    background-color: #c62828 !important;
+    color: #ffffff !important;
+}
+
+.label-warning, .badge-warning {
+    background-color: #f57c00 !important;
+    color: #ffffff !important;
+}
+
+/* ================= 13. RECEIPT & PRINT STYLING ================= */
+.receipt-wrapper {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    padding: 30px;
+    margin: 20px auto;
+    max-width: 900px;
+}
+
+.receipt-header {
+    border-bottom: 2px solid var(--mid-green);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.receipt-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary-green);
+    text-transform: uppercase;
+}
+
+@media print {
+    .page-header, 
+    .page-footer, 
+    .scroll-to-top, 
+    .btn-print-hide,
+    .page-breadcrumb {
+        display: none !important;
+    }
+    
+    body {
+        background-color: #ffffff !important;
+    }
+    
+    .receipt-wrapper, .portlet.light {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+}
+
+/* ================= 14. MOBILE RESPONSIVENESS ENHANCEMENTS ================= */
+@media (max-width: 768px) {
+    .page-header-top {
+        padding: 10px 0 !important;
+    }
+
+    .page-logo img {
+        height: 52px !important;
+    }
+
+    .title-center1 {
+        font-size: 17px !important;
+    }
+
+    .title-center2, .title-center3 {
+        font-size: 14.5px !important;
+    }
+
+    .login-btn {
+        padding: 7px 18px !important;
+        font-size: 13px !important;
+    }
+
+    .portlet-body {
+        padding: 16px !important;
+    }
+
+    .form-control, select, input[type="text"], input[type="password"] {
+        font-size: 14px !important;
+        min-height: 44px !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        border-radius: var(--radius-sm) !important;
+    }
+
+    .table th, .table td {
+        padding: 10px 12px !important;
+        font-size: 12.5px !important;
+        white-space: nowrap;
+    }
+
+    .footer-top-section {
+        padding: 30px 0 15px;
+    }
+
+    .footer-top-section .row > div {
+        margin-bottom: 20px;
+    }
+
+    .scroll-to-top {
+        right: 15px;
+        bottom: 15px;
+    }
+}
+
+

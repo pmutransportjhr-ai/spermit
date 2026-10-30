@@ -1,0 +1,143 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using System.Data.SqlClient;
+using SoftEra.JHT.Infrastructure;
+using System.IO;
+using System.Configuration;
+using System.Text;
+using System.Globalization;
+
+public partial class STA_COUNTER_SIGNATURE_REPORT : System.Web.UI.Page
+{
+    public string FillInterStatePermitList { get; set; }
+    protected List<QueryString> QueryStr = new List<QueryString>();
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            Bind_ddlDesState();
+            
+
+        }
+    }
+    public void Bind_ddlDesState()
+    {
+        SqlParameter[] parameters = new SqlParameter[2];
+        parameters[0] = new SqlParameter("@EMPLOYEE_ID", Convert.ToString(Session["EMPLOYEE_ID"]));
+        parameters[1] = new SqlParameter("@MODE", "WITHOUT_HOME_STATE_ACTIVE_STATE_LIST");
+        SqlDataReader dr = SQLHelper.ExecuteReader(SQLHelper.GetConnString(), CommandType.StoredProcedure, "STA_SP_MSTR_LIST", parameters);
+        
+        ddlDesState.DataSource = dr;
+        ddlDesState.Items.Clear();
+        ddlDesState.Items.Add(new ListItem("All", "0"));
+        ddlDesState.DataTextField = "STATE_NAME";
+        ddlDesState.DataValueField = "STATE_CODE";
+        ddlDesState.DataBind();
+        ddlDesState.SelectedValue = "0";
+
+
+    }
+    protected void btnRun_Click(object sender, EventArgs e)
+    {
+       String sConnectionString = ConfigurationManager.ConnectionStrings["connectionstring"].ToString();
+       using (SqlConnection sCon = new SqlConnection(sConnectionString))
+       {
+           try
+           {
+
+               String State = ddlDesState.SelectedValue;
+               String Status = ddlStatus.SelectedValue;
+               String PermitType = ddlType.SelectedValue;
+
+               sCon.Open();
+               SqlCommand sCmd = new SqlCommand();
+               sCmd.Connection = sCon;
+               sCmd.CommandText = "STA_SP_GET_COUNTER_SIGNATURE_MASTER_DATA";
+               sCmd.CommandType = CommandType.StoredProcedure;
+               sCmd.Parameters.Clear();
+               sCmd.Parameters.AddWithValue("@STATE_CODE", State);
+               sCmd.Parameters.AddWithValue("@APPLICATION_STATUS", Status);
+               sCmd.Parameters.AddWithValue("@TYPE", PermitType);
+               //sCmd.Parameters.AddWithValue("@DATE_FROM", DateTime.ParseExact(txtFrom.Text.Trim(), "d/M/yyyy", CultureInfo.InvariantCulture));
+               //sCmd.Parameters.AddWithValue("@DATE_TO", DateTime.ParseExact(txtTo.Text.Trim(), "d/M/yyyy", CultureInfo.InvariantCulture));
+               sCmd.Parameters.AddWithValue("@EMPLOYEE_ID", Convert.ToString(Session["EMPLOYEE_ID"]));
+               sCmd.Parameters.AddWithValue("@MODE", "LIST_MASTER");
+               DataSet ds = new DataSet();
+               SqlDataAdapter da = new SqlDataAdapter(sCmd);
+               da.Fill(ds);
+               DataTable dt = new DataTable();
+               dt = ds.Tables[0];
+
+          
+               StringBuilder sb = new StringBuilder();
+               if (dt.Rows.Count > 0)
+               {
+                   foreach (DataRow dr in dt.Rows)
+                   {
+
+                       string q1 = CryptorEngine.Encrypt("PERNO=" + Convert.ToString(dr["PERMIT_NUMBER"]), true);
+                                                 
+                      
+                       sb.Append("<tr>");
+                       sb.Append("<td>" + Convert.ToString(dr["APPLICATION_NUMBER"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["PERMIT_TYPE"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["OWNER_NAME"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["MOBILE_NUMBER"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["REGISTRATION_NUMBER"]) + "</td>");
+                       sb.Append("<td><a  href=\"javascript:fnPayDetail('" + q1 + "');\">" + Convert.ToString(dr["PERMIT_NUMBER"]) + "</a></td>");
+                       
+                       sb.Append("<td>" + Convert.ToString(dr["ROUTE"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["FEE"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["FEE_TAX_PAID_FROM"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["FEE_TAX_PAID_UP_TO"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["FEE_PAY_TRANSACTION_ID"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["VALID_FROM"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["VALID_UP_TO"]) + "</td>");
+                       sb.Append("<td>" + Convert.ToString(dr["APPLICATION_STATUS"]) + "</td>");
+                       sb.Append("<td><a class='btn btn-outline dark' href=\"javascript:MasterView('" + CryptorEngine.Encrypt("ID=" + Convert.ToString(dr["APP_ID"]), true) + "');\">View</a></td>");
+                       if (Convert.ToString(dr["APPLICATION_STATUS"]) == "Issued"
+                           || Convert.ToString(dr["APPLICATION_STATUS"]) == "Replaced" || Convert.ToString(dr["APPLICATION_STATUS"]) == "TRANSFERED")
+                       {
+                           sb.Append("<td><a ' class='btn btn-outline dark' href=\"javascript:showIssuedReceipt('" + CryptorEngine.Encrypt("PER_NUMBER=" + Convert.ToString(dr["PERMIT_NUMBER"]), true) + "');\">View Isuued Recipt</a></td>");
+                       }
+                       else
+                       {
+                           sb.Append("<td></td>");
+                          // sb.Append("<td><a class='btn btn-outline dark' href=\"javascript:showIssuedReceiptGlobal('" + CryptorEngine.Encrypt("PER_NUMBER=" + Convert.ToString(dr["PERMIT_NUMBER"]), true) + "');\">View Isuued Recipt</a></td>");
+                       }
+
+                       sb.Append("<td><a class='btn btn-outline dark' href=\"javascript:showTimetable('" + CryptorEngine.Encrypt("PER_NUMBER=" + Convert.ToString(dr["PERMIT_NUMBER"]), true) + "');\">View Time Table</a></td>");
+                       //sb.Append("<td><a class='btn btn-outline dark' href=\"javascript:showForwardingLetter('" + CryptorEngine.Encrypt("PER_NUMBER=" + Convert.ToString(dr["PERMIT_NUMBER"]), true) + "');\">View Forwarding Letter</a></td>");
+                      
+                       sb.Append("</tr>");
+                   }
+
+
+                   divrenewalDetail.InnerHtml = sb.ToString();
+                   tblISPermit.Visible = true;
+               }
+               else
+               {
+                   tblISPermit.Visible = false;
+                   ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "$('#loadingmessage').modal('hide');alert('No Data Found');", true);
+               }
+               ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "$('#loadingmessage').modal('hide');TableDatatablesScroller.init();ComponentsDateTimePickers.init();", true);
+
+           }
+           catch (Exception ex)
+           {
+               String Messqge = ex.Message;
+               Messqge = Messqge.Replace("'", "").Replace("\r", " ").Replace("\n", " ");
+               ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "$('#loadingmessage').modal('hide');alert('" + Messqge + "');", true);
+
+
+           }
+       }
+    }
+    
+}

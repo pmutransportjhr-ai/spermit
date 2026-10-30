@@ -1,0 +1,1150 @@
+﻿/*==================================================
+                PAGE
+==================================================*/
+
+body {
+    background: #f4f7fb;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.container-fluid {
+    max-width: 1800px;
+}
+
+/*==================================================
+                SECTION HEADER
+==================================================*/
+
+.section-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e9ecef;
+    padding: 20px 28px;
+}
+
+    .section-header h4 {
+        margin: 0;
+        color: #198754;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .section-header small {
+        color: #777;
+        font-size: 14px;
+    }
+
+/*==================================================
+                HERO CARD
+==================================================*/
+
+.hero-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 35px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+    margin-bottom: 30px;
+}
+
+.hero-title {
+    color: #198754;
+    font-size: 34px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.hero-subtitle {
+    color: #666;
+    line-height: 1.8;
+    font-size: 16px;
+}
+
+.hero-breadcrumb {
+    color: #888;
+    font-size: 14px;
+}
+
+.hero-mini-card {
+    background: #f8fafc;
+    border: 1px solid #e8ecef;
+    border-radius: 15px;
+    text-align: center;
+    padding: 22px;
+    transition: .30s;
+    height: 100%;
+}
+
+    .hero-mini-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0,0,0,.10);
+    }
+
+.hero-mini-title {
+    color: #777;
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.hero-mini-value {
+    margin-top: 10px;
+    color: #198754;
+    font-size: 26px;
+    font-weight: 700;
+    word-break: break-word;
+}
+/*==================================================
+                SEARCH CARD
+==================================================*/
+
+.search-card {
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+    margin-bottom: 30px;
+}
+
+    .search-card .card-body {
+        padding: 35px;
+    }
+
+    .search-card .form-label {
+        font-size: 15px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 10px;
+    }
+
+    .search-card .form-control {
+        height: 58px;
+        border-radius: 14px;
+        border: 1px solid #ced4da;
+        font-size: 16px;
+        transition: .30s;
+        box-shadow: none;
+    }
+
+        .search-card .form-control:focus {
+            border-color: #198754;
+            box-shadow: 0 0 0 .20rem rgba(25,135,84,.15);
+        }
+
+    .search-card .btn {
+        height: 58px;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 600;
+        transition: .30s;
+    }
+
+        .search-card .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(25,135,84,.25);
+        }
+
+        .search-card .btn i {
+            margin-right: 8px;
+        }
+
+/*===============================================
+            VALIDATION
+===============================================*/
+
+.text-danger {
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 8px;
+    display: inline-block;
+}
+
+/*===============================================
+            SEARCH ANIMATION
+===============================================*/
+
+.search-card {
+    animation: fadeInUp .5s ease;
+}
+
+@keyframes fadeInUp {
+
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/*==================================================
+                SUMMARY SECTION
+==================================================*/
+
+.summary-section {
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    margin-bottom: 30px;
+}
+
+    .summary-section .card-body {
+        padding: 30px;
+    }
+
+/*==================================================
+                KPI CARD
+==================================================*/
+
+.kpi-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 22px;
+    border-radius: 18px;
+    color: #fff;
+    min-height: 120px;
+    transition: all .30s ease;
+    cursor: default;
+}
+
+    .kpi-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 14px 28px rgba(0,0,0,.18);
+    }
+
+/*==================================================
+                ICON
+==================================================*/
+
+.kpi-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.20);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 26px;
+}
+
+/*==================================================
+                CONTENT
+==================================================*/
+
+.kpi-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.kpi-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    opacity: .95;
+    font-weight: 600;
+}
+
+.kpi-value {
+    margin-top: 8px;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+/*==================================================
+                CARD COLORS
+==================================================*/
+
+.total {
+    background: linear-gradient(135deg,#0d6efd,#4b97ff);
+}
+
+.success {
+    background: linear-gradient(135deg,#198754,#39b86d);
+}
+
+.warning {
+    background: linear-gradient(135deg,#fd7e14,#ffb347);
+}
+
+.danger {
+    background: linear-gradient(135deg,#dc3545,#ff6675);
+}
+
+.info {
+    background: linear-gradient(135deg,#0dcaf0,#59dcff);
+}
+
+.purple {
+    background: linear-gradient(135deg,#6f42c1,#a06dff);
+}
+
+/*==================================================
+                RESPONSIVE TEXT
+==================================================*/
+
+@media (max-width:992px) {
+
+    .kpi-card {
+        min-height: 100px;
+    }
+
+    .kpi-value {
+        font-size: 20px;
+    }
+}
+
+@media (max-width:768px) {
+
+    .kpi-card {
+        padding: 18px;
+    }
+
+    .kpi-icon {
+        width: 54px;
+        height: 54px;
+        font-size: 22px;
+    }
+
+    .kpi-value {
+        font-size: 18px;
+    }
+}
+/*==================================================
+                DETAILS CARD
+==================================================*/
+
+.details-card {
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    transition: .30s;
+}
+
+    .details-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(0,0,0,.12);
+    }
+
+    .details-card .card-body {
+        padding: 25px;
+    }
+
+/*==================================================
+                DETAILS TABLE
+==================================================*/
+
+.details-table {
+    margin: 0;
+}
+
+    .details-table tr {
+        transition: .25s;
+    }
+
+        .details-table tr:hover {
+            background: #f8fbfd;
+        }
+
+    .details-table th {
+        width: 38%;
+        padding: 14px 10px;
+        color: #555;
+        font-size: 14px;
+        font-weight: 700;
+        border-bottom: 1px solid #eef2f5;
+        white-space: nowrap;
+    }
+
+    .details-table td {
+        padding: 14px 10px;
+        color: #222;
+        font-size: 15px;
+        font-weight: 600;
+        border-bottom: 1px solid #eef2f5;
+        word-break: break-word;
+    }
+
+    .details-table tr:last-child th,
+    .details-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /*==================================================
+                ZEBRA EFFECT
+==================================================*/
+
+    .details-table tbody tr:nth-child(even) {
+        background: #fcfcfc;
+    }
+
+    /*==================================================
+                LABEL VALUES
+==================================================*/
+
+    .details-table span {
+        color: #198754;
+        font-weight: 700;
+    }
+
+/*==================================================
+                STATUS BADGES
+==================================================*/
+
+.status-active {
+    background: #198754;
+    color: white;
+    padding: 5px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-expired {
+    background: #dc3545;
+    color: white;
+    padding: 5px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: #ffc107;
+    color: #222;
+    padding: 5px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/*==================================================
+                CARD TITLE ICONS
+==================================================*/
+
+.details-card h4 i {
+    width: 32px;
+    text-align: center;
+}
+
+/*==================================================
+                TABLE ICON (Optional)
+==================================================*/
+
+.details-table th::before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 14px;
+    background: #198754;
+    border-radius: 20px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/*==================================================
+                TABLE SPACING
+==================================================*/
+
+.details-table td,
+.details-table th {
+    vertical-align: middle;
+}
+
+/*==================================================
+                LONG ADDRESSS
+==================================================*/
+
+#lblPresentAddress,
+#lblPermanentAddress {
+    display: block;
+    line-height: 1.7;
+}
+
+/*==================================================
+                SMALL DEVICES
+==================================================*/
+
+@media (max-width:992px) {
+
+    .details-card {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width:768px) {
+
+    .details-card .card-body {
+        padding: 18px;
+    }
+
+    .details-table th {
+        width: 42%;
+        font-size: 13px;
+    }
+
+    .details-table td {
+        font-size: 14px;
+    }
+}
+/*==================================================
+                ROUTE INFORMATION
+==================================================*/
+
+.route-section {
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    margin-bottom: 30px;
+}
+
+    .route-section .card-body {
+        padding: 30px;
+    }
+
+/*==================================================
+                ROUTE CARD
+==================================================*/
+
+.route-card {
+    background: #f8fafc;
+    border: 1px solid #e9ecef;
+    border-radius: 18px;
+    padding: 24px;
+    text-align: center;
+    transition: .30s;
+    height: 100%;
+}
+
+    .route-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,.12);
+    }
+
+/*==================================================
+                ROUTE ICON
+==================================================*/
+
+.route-icon {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    color: #ffffff;
+    font-size: 24px;
+    margin-bottom: 18px;
+}
+
+/*==================================================
+                ROUTE TITLE
+==================================================*/
+
+.route-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #777;
+    font-weight: 700;
+    letter-spacing: .5px;
+}
+
+/*==================================================
+                ROUTE VALUE
+==================================================*/
+
+.route-value {
+    margin-top: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #198754;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/*==================================================
+                ROUTE VIA
+==================================================*/
+
+.route-path-card {
+    margin-top: 25px;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+/*==================================================
+                ROUTE PATH TITLE
+==================================================*/
+
+.route-path-title {
+    background: linear-gradient(135deg,#198754,#28a745);
+    color: #ffffff;
+    padding: 18px 25px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+    .route-path-title i {
+        margin-right: 10px;
+    }
+
+/*==================================================
+                ROUTE PATH TEXT
+==================================================*/
+
+.route-path-text {
+    padding: 25px;
+    background: #f8fafc;
+    line-height: 2;
+    font-size: 16px;
+    color: #444;
+    min-height: 90px;
+    border-top: 1px solid #e9ecef;
+    word-break: break-word;
+}
+
+    /*==================================================
+                ROUTE DIRECTION
+==================================================*/
+
+    .route-path-text::before {
+        content: "🚌 ";
+        font-size: 18px;
+    }
+
+/*==================================================
+                ROUTE BADGE
+==================================================*/
+
+.route-badge {
+    display: inline-block;
+    background: #198754;
+    color: #ffffff;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    margin: 3px;
+}
+
+/*==================================================
+                RESPONSIVE
+==================================================*/
+
+@media (max-width:992px) {
+
+    .route-card {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width:768px) {
+
+    .route-icon {
+        width: 55px;
+        height: 55px;
+        font-size: 20px;
+    }
+
+    .route-value {
+        font-size: 18px;
+    }
+
+    .route-path-title {
+        font-size: 16px;
+    }
+
+    .route-path-text {
+        font-size: 15px;
+        line-height: 1.8;
+    }
+}
+
+/*==================================================
+                ROUTE SCHEDULE
+==================================================*/
+
+.route-schedule-section {
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    margin-bottom: 30px;
+}
+
+    .route-schedule-section .card-body {
+        padding: 30px;
+    }
+
+/*==================================================
+                JOURNEY CARD
+==================================================*/
+
+.journey-card {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 18px;
+    overflow: hidden;
+    transition: .30s;
+    height: 100%;
+}
+
+    .journey-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,.12);
+    }
+
+/*==================================================
+                JOURNEY HEADER
+==================================================*/
+
+.journey-header {
+    color: #ffffff;
+    padding: 16px 22px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .5px;
+}
+
+    .journey-header.bg-success {
+        background: linear-gradient(135deg,#198754,#2eb872);
+    }
+
+    .journey-header.bg-danger {
+        background: linear-gradient(135deg,#dc3545,#ff6b6b);
+    }
+
+/*==================================================
+                TABLE
+==================================================*/
+
+.journey-table {
+    margin-bottom: 0;
+    font-size: 14px;
+}
+
+    /*==================================================
+                TABLE HEADER
+==================================================*/
+
+    .journey-table thead th {
+        background: #198754;
+        color: #ffffff;
+        text-align: center;
+        vertical-align: middle;
+        padding: 14px;
+        border: none;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+
+.journey-card:last-child .journey-table thead th {
+    background: #dc3545;
+}
+
+/*==================================================
+                TABLE BODY
+==================================================*/
+
+.journey-table tbody td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 12px;
+    border-bottom: 1px solid #edf0f2;
+    white-space: nowrap;
+}
+
+/*==================================================
+                ZEBRA STRIPES
+==================================================*/
+
+.journey-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+/*==================================================
+                ROW HOVER
+==================================================*/
+
+.journey-table tbody tr:hover {
+    background: #eef8f2;
+    transition: .25s;
+}
+
+.journey-card:last-child
+.journey-table tbody tr:hover {
+    background: #fff2f2;
+}
+
+/*==================================================
+                SCROLL
+==================================================*/
+
+.table-responsive {
+    max-height: 520px;
+    overflow: auto;
+}
+
+    .table-responsive::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #198754;
+        border-radius: 20px;
+    }
+
+.journey-card:last-child
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #dc3545;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #eeeeee;
+}
+
+/*==================================================
+                EMPTY DATA
+==================================================*/
+
+.journey-table .empty {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+    font-size: 15px;
+}
+
+/*==================================================
+                FIRST COLUMN
+==================================================*/
+
+.journey-table td:first-child {
+    font-weight: 700;
+    color: #198754;
+}
+
+.journey-card:last-child
+.journey-table td:first-child {
+    color: #dc3545;
+}
+
+/*==================================================
+                TIME COLUMN
+==================================================*/
+
+.journey-table td:nth-child(3),
+.journey-table td:nth-child(4) {
+    font-family: Consolas, monospace;
+    font-weight: 600;
+}
+
+/*==================================================
+                MOBILE
+==================================================*/
+
+@media (max-width:992px) {
+
+    .journey-card {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width:768px) {
+
+    .journey-header {
+        font-size: 16px;
+    }
+
+    .journey-table {
+        font-size: 13px;
+    }
+
+        .journey-table thead th {
+            padding: 10px;
+        }
+
+        .journey-table tbody td {
+            padding: 10px;
+        }
+}
+
+/*==================================================
+                PAGE FOOTER
+==================================================*/
+
+.page-footer {
+    margin-top: 40px;
+    background: linear-gradient(135deg,#198754,#157347);
+    color: #ffffff;
+    padding: 18px 35px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+    .page-footer a {
+        color: #ffffff;
+        text-decoration: none;
+    }
+
+        .page-footer a:hover {
+            text-decoration: underline;
+        }
+
+/*==================================================
+                LOADING OVERLAY
+==================================================*/
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    backdrop-filter: blur(3px);
+}
+
+.loading-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 40px;
+    min-width: 340px;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,.18);
+}
+
+    .loading-card h5 {
+        color: #198754;
+        font-weight: 700;
+        margin-top: 15px;
+    }
+
+    .loading-card p {
+        color: #666;
+        margin-top: 10px;
+        margin-bottom: 0;
+        line-height: 1.8;
+    }
+
+/*==================================================
+                BUTTONS
+==================================================*/
+
+.btn {
+    border-radius: 12px;
+    transition: .25s;
+    font-weight: 600;
+}
+
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+
+.btn-success {
+    background: #198754;
+    border-color: #198754;
+}
+
+    .btn-success:hover {
+        background: #157347;
+        border-color: #157347;
+    }
+
+/*==================================================
+                FORM CONTROLS
+==================================================*/
+
+.form-control,
+.form-select {
+    border-radius: 12px;
+}
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 .20rem rgba(25,135,84,.15);
+    }
+
+/*==================================================
+                TABLES
+==================================================*/
+
+.table {
+    margin-bottom: 0;
+}
+
+    .table th {
+        font-weight: 700;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+/*==================================================
+                BADGES
+==================================================*/
+
+.badge {
+    border-radius: 30px;
+    padding: 8px 14px;
+    font-weight: 600;
+    letter-spacing: .4px;
+}
+
+/*==================================================
+                CARD ANIMATION
+==================================================*/
+
+.hero-card,
+.search-card,
+.summary-section,
+.details-card,
+.route-section,
+.route-schedule-section {
+    animation: fadeIn .45s ease;
+}
+
+@keyframes fadeIn {
+
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/*==================================================
+                SCROLLBAR
+==================================================*/
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #198754;
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-track {
+    background: #eeeeee;
+}
+
+/*==================================================
+                TEXT SELECTION
+==================================================*/
+
+::selection {
+    background: #198754;
+    color: white;
+}
+
+/*==================================================
+                RESPONSIVE
+==================================================*/
+
+@media (max-width:1200px) {
+
+    .hero-title {
+        font-size: 28px;
+    }
+}
+
+@media (max-width:992px) {
+
+    .hero-card {
+        padding: 25px;
+    }
+
+    .section-header {
+        padding: 18px 20px;
+    }
+}
+
+@media (max-width:768px) {
+
+    .hero-title {
+        font-size: 24px;
+    }
+
+    .hero-subtitle {
+        font-size: 14px;
+    }
+
+    .loading-card {
+        min-width: 280px;
+        padding: 30px;
+    }
+
+    .page-footer {
+        text-align: center;
+    }
+}
+
+@media (max-width:576px) {
+
+    .hero-card {
+        padding: 20px;
+    }
+
+    .section-header h4 {
+        font-size: 18px;
+    }
+
+    .details-table th {
+        width: 45%;
+    }
+
+    .details-table td {
+        font-size: 13px;
+    }
+}
+
+/*==================================================
+                PRINT
+==================================================*/
+
+@media print {
+
+    .dashboard-header,
+    .dashboard-navbar,
+    .page-footer,
+    .search-card,
+    .btn {
+        display: none !important;
+    }
+
+    body {
+        background: #ffffff;
+    }
+
+    .hero-card,
+    .summary-section,
+    .details-card,
+    .route-section,
+    .route-schedule-section {
+        box-shadow: none;
+        border: 1px solid #dddddd;
+        page-break-inside: avoid;
+    }
+}

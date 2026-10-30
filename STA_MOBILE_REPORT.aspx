@@ -1,0 +1,149 @@
+﻿<%@ Page Title="" Language="C#" MasterPageFile="MasterPage.master" AutoEventWireup="true" CodeFile="STA_MOBILE_REPORT.aspx.cs" Inherits="STA_MOBILE_REPORT" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+    <link href="assets/global/plugins/datatables/datatables.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css" rel="stylesheet" type="text/css" />
+
+      <link href="assets/global/plugins/bootstrap-daterangepicker/daterangepicker.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/bootstrap-timepicker/css/bootstrap-timepicker.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/clockface/css/clockface.css" rel="stylesheet" type="text/css" />
+
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <input id="txtScreen" type="text" value="withDrawApp.aspx" style="display: none;" />
+    <input type="text" id="txtColCnt" style="display: none;" value="5" />
+
+    <form runat="server" autocomplete="off">
+<asp:ScriptManager ID="ScriptManager1" runat="server" ScriptMode="Release" />
+                                            
+                                            
+                                         
+        <div class="page-container">
+            <div class="page-content-wrapper">
+                <div class="page-content">
+                    <div class="container">
+                        <ul class="page-breadcrumb breadcrumb">
+                            <li>
+                                <a href="STA-DASHBOARD.aspx">Home</a>
+                                <i class="fa fa-circle"></i>
+                            </li>
+                            <li>
+                                <span>STA MOBILE UPDATE REPORT</span>
+                            </li>
+                        </ul>
+                        <div class="page-content-inner">
+                            <asp:UpdatePanel ID="UpdatePanel1" runat="server">
+<ContentTemplate>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="portlet light portlet-fit">
+                                        <div class="portlet-title">
+                                            <div class="caption">
+                                                <i class="icon-settings font-red"></i>
+                                                <span class="caption-subject font-red sbold uppercase">STA MOBILE UPDATE REPORT</span>
+                                            </div>
+                                        </div>
+                                        <div class="portlet-body">
+                                            <div class="table-toolbar">
+                                                   <div class="row">
+                                                             <div class="col-md-3">Date Range</div>
+                                                <div class="col-md-6">
+                                                    <div class="input-group input-large date-picker input-daterange" data-date="10/11/2012" data-date-format="dd/mm/yyyy">
+                                                        <asp:TextBox ID="txtFrom" Width="210px" CssClass="regreadonly form-control" runat="server" placeholder="From"></asp:TextBox>
+                                                        <span class="input-group-addon">To </span>
+                                                        <asp:TextBox ID="txtTo" Width="210px" CssClass="regreadonly form-control" runat="server"  placeholder="To"></asp:TextBox>
+                                                    </div>
+
+                                                </div>
+                                                                                 
+
+                                                <div class="col-md-3">
+                                                    <div class="btn-group-devided">
+                                                        <asp:Button ID="btnRun" OnClick="btnRun_Click" OnClientClick="javascript:return fnValidateReport();" runat="server" Text="Run" CssClass="btn green" />
+                                                    </div>
+                                                </div>
+                                          
+
+                                            </div>
+
+
+                                        </div><br /><br /><br />
+                                            <div id="tblISPermit" runat="server" visible="false">
+                                            <table class="table table-striped table-hover table-bordered" id="sample_1">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Application Number</th>
+                                                        <th>Registration Number</th>
+                                                        <th>Old Mob. Number</th>
+                                                        <th>New Mob. Number</th>
+                                                        <th>Modified On</th>                                                        
+                                                        
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbdInterStatePermitList">
+                                                    <div id="divrenewalDetail" runat="server"></div>
+                                                </tbody>
+                                            </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+   
+    </ContentTemplate>
+                                 <Triggers>
+                                                          <asp:AsyncPostBackTrigger ControlID ="btnRun" />
+                                                         </Triggers>
+        </asp:UpdatePanel>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+    </form>
+</asp:Content>
+<asp:Content ID="Content3" ContentPlaceHolderID="ContentPlaceHolder2" runat="Server">
+    <script src="assets/global/scripts/datatable.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/datatables/datatables.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js" type="text/javascript"></script>
+    <script src="assets/pages/scripts/table-datatables-scroller.js" type="text/javascript"></script>
+
+
+     <!-- BEGIN PAGE LEVEL PLUGINS -->
+    <script src="assets/global/plugins/moment.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/bootstrap-daterangepicker/daterangepicker.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/clockface/js/clockface.js" type="text/javascript"></script>
+    <!-- END PAGE LEVEL PLUGINS -->
+    <script src="assets/pages/scripts/components-date-time-pickers.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        function fnValidateReport()
+        {
+            var fromdate = $('input[id*=txtFrom]').val();
+            var txtTo = $('input[id*=txtTo]').val();
+
+            if (fromdate == "") {
+                alert("Please Select From Date");
+                return false;
+
+            }
+            if (txtTo == "") {
+                alert("Please Select To Date");
+                return false;
+
+            }
+            return true;
+        }
+
+    </script>
+</asp:Content>
+

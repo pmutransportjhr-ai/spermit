@@ -1,0 +1,321 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeFile="JHTRANSPORT.master.cs" Inherits="JHTRANSPORT" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <meta charset="utf-8" />
+    <title>Transport Department, Government of Jharkhand</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="Transport Department, Government of Jharkhand - Online State Permit System" name="description" />
+    <meta content="" name="author" />
+    
+    <!-- BEGIN BOOTSTRAP 5 & GLOBAL STYLES -->
+    <link href="assets/bootstrap-5.3.8/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/simple-line-icons/simple-line-icons.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/uniform/css/uniform.default.css" rel="stylesheet" type="text/css" />
+    <link href="assets/global/plugins/bootstrap-switch/css/bootstrap-switch.min.css" rel="stylesheet" type="text/css" />
+    <!-- END GLOBAL STYLES -->
+
+    <!-- BEGIN PAGE LEVEL PLUGINS -->
+    <link href="assets/css/Preloader.css" rel="stylesheet" type="text/css" />
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <!-- END PAGE LEVEL PLUGINS -->
+
+    <!-- BEGIN THEME GLOBAL STYLES -->
+    <link href="assets/global/css/components.min.css" rel="stylesheet" id="style_components" type="text/css" />
+    <link href="assets/global/css/plugins.min.css" rel="stylesheet" type="text/css" />
+    
+    <!-- PUBLIC PORTAL MODERN DESIGN SYSTEM (GREEN & WHITE THEME) -->
+    <link href="assets/css/public-portal-modern.css" rel="stylesheet" type="text/css" />
+    <!-- END THEME STYLES -->
+
+    <noscript>
+        <meta http-equiv="Refresh" content="0;URL=noJavascript.html" />
+    </noscript>
+</head>
+<body class="page-container-bg-solid page-boxed">
+
+    <!-- PRELOADER -->
+    <div id="Loader">
+        <div class="waiting-text">
+            <h4>
+                <img src="assets/global/img/loading-spinner-blue.gif" alt="" />&nbsp;&nbsp;Please wait. Processing request...
+            </h4>
+        </div>
+    </div>
+
+    <!-- MAIN PAGE HEADER -->
+    <div class="page-header">
+        <!-- HEADER TOP -->
+        <div class="page-header-top">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-3 col-sm-4 text-center text-md-start">
+                        <div class="page-logo">
+                            <a href="PermitHomePage.aspx">
+                                <img src="assets/img/logo.png" alt="Jharkhand State Emblem" class="logo-default" />
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-8 text-center my-2 my-md-0 title-center">
+                        <span class="title-center1">Government of Jharkhand, </span>
+                        <span class="title-center2">Transport Department</span><br />
+                        <span class="title-center3">Online State Permit System</span>
+                    </div>
+                    <div class="col-md-3 text-center text-md-end">
+                        <a href="Login.aspx" class="btn login-btn">
+                            <i class="fa fa-sign-in"></i> Login
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END HEADER TOP -->
+
+        <!-- HEADER NAVIGATION MENU -->
+        <div class="page-header-menu custom-header-menu">
+            <div class="container-fluid">
+                <div class="menu-toggle" onclick="toggleMenu()">
+                    <i class="fa fa-bars"></i> MENU
+                </div>
+
+                <ul id="ulMenu" runat="server" class="main-menu">
+                </ul>
+            </div>
+        </div>
+        <!-- END HEADER MENU -->
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+    </asp:ContentPlaceHolder>
+
+    <!-- FOOTER -->
+    <footer class="page-footer">
+        <div class="footer-top-section py-4">
+            <div class="container">
+                <div class="row g-4 text-start">
+                    <!-- Column 1: Branding & Info -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="footer-brand mb-3">
+                            <h5 class="fw-bold text-white mb-2">
+                                <i class="fa fa-shield me-2"></i> Transport Department
+                            </h5>
+                            <p class="small text-white-50 mb-0" style="line-height: 1.6;">
+                                Government of Jharkhand Online State Permit System. Facilitating digital permit applications, online fee payments, status tracking, and QR verification for commercial & passenger transport operators.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Quick Links -->
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="fw-bold text-white text-uppercase mb-3">
+                            <i class="fa fa-link me-2"></i> Quick Links
+                        </h6>
+                        <ul class="list-unstyled footer-links mb-0 small">
+                            <li class="mb-2"><a href="PermitHomePage.aspx"><i class="fa fa-angle-right me-2"></i> Home</a></li>
+                            <li class="mb-2"><a href="ApplicationStatusAndPayment.aspx"><i class="fa fa-angle-right me-2"></i> Track Application Status</a></li>
+                            <li class="mb-2"><a href="ClientPaymentStatus.aspx"><i class="fa fa-angle-right me-2"></i> Check Payment Status</a></li>
+                            <li class="mb-2"><a href="APPLICATION_NUMBER.aspx"><i class="fa fa-angle-right me-2"></i> Know Application Number</a></li>
+                            <li class="mb-2"><a href="OFFICE-NOTICE.aspx"><i class="fa fa-angle-right me-2"></i> Latest Office Notices</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 3: Contact & Support -->
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="fw-bold text-white text-uppercase mb-3">
+                            <i class="fa fa-envelope me-2"></i> Contact & Helpdesk
+                        </h6>
+                        <ul class="list-unstyled footer-contact mb-0 small text-white-50">
+                            <li class="mb-2 d-flex align-items-start gap-2">
+                                <i class="fa fa-map-marker mt-1 text-white"></i>
+                                <span>Transport Department, F.F.P. Building, Dhurwa, Ranchi, Jharkhand - 834004</span>
+                            </li>
+                            <li class="mb-2 d-flex align-items-center gap-2">
+                                <i class="fa fa-clock-o text-white"></i>
+                                <span>Mon - Sat: 10:00 AM - 5:00 PM</span>
+                            </li>
+                            <li class="mb-2 d-flex align-items-center gap-2">
+                                <i class="fa fa-external-link text-white"></i>
+                                <a href="Third-Party-View.aspx" class="text-white text-decoration-underline">Third Party Permit Verification</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 4: Official Portals -->
+                    <div class="col-lg-2 col-md-6">
+                        <h6 class="fw-bold text-white text-uppercase mb-3">
+                            <i class="fa fa-building me-2"></i> Government
+                        </h6>
+                        <ul class="list-unstyled footer-links mb-0 small">
+                            <li class="mb-2"><a href="https://jharkhand.gov.in" target="_blank" rel="noopener"><i class="fa fa-globe me-2"></i> Jharkhand Portal</a></li>
+                            <li class="mb-2"><a href="https://parivahan.gov.in" target="_blank" rel="noopener"><i class="fa fa-car me-2"></i> Parivahan Sewa</a></li>
+                            <li class="mb-2"><a href="#" data-bs-toggle="modal" data-bs-target="#TermAndCondition"><i class="fa fa-file-text-o me-2"></i> Terms & Conditions</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom-bar py-3">
+            <div class="container text-center small text-white fw-semibold">
+                All Rights Reserved by Government of Jharkhand, India.
+            </div>
+        </div>
+    </footer>
+
+    <div class="scroll-to-top">
+        <i class="icon-arrow-up"></i>
+    </div>
+
+    <!-- MODAL DIALOGS -->
+    <div id="loadingmessage" class="modal fade" tabindex="-1" data-backdrop="static" style="top: 40%;" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content" style="margin: 0 auto; width: 220px; border: 2px solid var(--mid-green);">
+                <div class="modal-body text-center p-3">
+                    <img id="loading" src="assets/global/img/loading-spinner-blue.gif" class="me-2" alt="loading..." />
+                    <span style="font-size: 15px; font-weight: 600; color: var(--primary-green);"> Please Wait...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="TermAndCondition" class="modal fade" tabindex="-1" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Online Applications Terms & Conditions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="scroller" data-height="400px" data-always-visible="1" data-rail-visible1="1">
+                        <div id="termsConditions"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BEGIN CORE PLUGINS -->
+    <script src="assets/global/plugins/jquery.min.js" type="text/javascript"></script>
+    <script src="assets/bootstrap-5.3.8/js/bootstrap.bundle.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/js.cookie.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/bootstrap-hover-dropdown/bootstrap-hover-dropdown.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/jquery.blockui.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/uniform/jquery.uniform.min.js" type="text/javascript"></script>
+    <script src="assets/global/plugins/bootstrap-switch/js/bootstrap-switch.min.js" type="text/javascript"></script>
+    <!-- END CORE PLUGINS -->
+
+    <!-- BEGIN THEME GLOBAL SCRIPTS -->
+    <script src="assets/global/scripts/app.min.js" type="text/javascript"></script>
+    <!-- END THEME GLOBAL SCRIPTS -->
+
+    <!-- BEGIN PAGE LEVEL SCRIPTS -->
+    <script src="assets/js/ControlValidation.js" type="text/javascript"></script>
+    <asp:ContentPlaceHolder ID="ContentPlaceHolder2" runat="server">
+    </asp:ContentPlaceHolder>
+    <!-- END PAGE LEVEL SCRIPTS -->
+
+    <!-- BEGIN THEME LAYOUT SCRIPTS -->
+    <script src="assets/layouts/layout3/scripts/layout.min.js" type="text/javascript"></script>
+    <script src="assets/layouts/layout3/scripts/demo.min.js" type="text/javascript"></script>
+    <script src="assets/layouts/global/scripts/quick-sidebar.min.js" type="text/javascript"></script>
+    <!-- END THEME LAYOUT SCRIPTS -->
+
+    <script type="text/javascript">
+        // Global Toggle Function for Mobile Menu
+        function toggleMenu() {
+            $(".main-menu").toggleClass("menu-open");
+        }
+
+        // Global Helper to Dismiss Loaders & Overlays
+        function hideAllLoaders() {
+            $("#Loader").fadeOut("fast");
+            if ($("#loadingmessage").length) {
+                try { $("#loadingmessage").modal("hide"); } catch (err) {}
+                $("#loadingmessage").removeClass("in").removeClass("show").css("display", "none").attr("aria-hidden", "true");
+            }
+            $(".modal-backdrop").remove();
+            $("body").removeClass("modal-open").css("padding-right", "").css("overflow", "");
+        }
+
+        // Attach ASP.NET AJAX EndRequestHandler globally
+        function attachPrmEndRequestHandler() {
+            if (typeof (Sys) !== 'undefined' && typeof (Sys.WebForms) !== 'undefined' && typeof (Sys.WebForms.PageRequestManager) !== 'undefined') {
+                var prm = Sys.WebForms.PageRequestManager.getInstance();
+                if (prm && !prm._endReqAttached) {
+                    prm._endReqAttached = true;
+                    prm.add_endRequest(function (sender, args) {
+                        hideAllLoaders();
+                        setTimeout(hideAllLoaders, 150);
+                        setTimeout(hideAllLoaders, 400);
+                    });
+                    prm.add_asyncPostBackError(function (sender, args) {
+                        hideAllLoaders();
+                    });
+                }
+            }
+        }
+
+        $(document).ajaxComplete(function () { hideAllLoaders(); });
+        $(document).ajaxError(function () { hideAllLoaders(); });
+
+        $(document).ready(function () {
+            hideAllLoaders();
+            attachPrmEndRequestHandler();
+
+            // Handle Submenu Clicks for Mobile
+            $(document).on('click', '.main-menu li > a', function (e) {
+                var $parent = $(this).parent();
+                var $submenu = $parent.children('ul');
+
+                if ($submenu.length > 0 && $(window).width() < 992) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    $parent.siblings().removeClass('open');
+                    $parent.toggleClass('open');
+                }
+            });
+
+            // Close menu when clicking outside
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.custom-header-menu').length) {
+                    $('.main-menu').removeClass('menu-open');
+                    $('.main-menu li').removeClass('open');
+                }
+            });
+
+            // Reset menu state on window resize
+            $(window).resize(function () {
+                if ($(window).width() > 991) {
+                    $('.main-menu').removeClass('menu-open').css("display", "");
+                    $('.main-menu li').removeClass('open');
+                }
+            });
+        });
+
+        $(window).on('load', function () {
+            hideAllLoaders();
+            attachPrmEndRequestHandler();
+        });
+
+        if (typeof (Sys) !== 'undefined' && typeof (Sys.Application) !== 'undefined') {
+            Sys.Application.add_load(function () {
+                hideAllLoaders();
+                attachPrmEndRequestHandler();
+            });
+        }
+    </script>
+
+</body>
+</html>

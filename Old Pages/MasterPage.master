@@ -1,0 +1,174 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterPage.master.cs" Inherits="MasterPage" %>
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <meta charset="utf-8" />
+    <title>Transport Department, Government of Jharkhand</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+
+    <!-- GLOBAL STYLES -->
+    <link href="assets/global/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="assets/global/plugins/simple-line-icons/simple-line-icons.min.css" rel="stylesheet" />
+    <link href="assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="assets/global/plugins/uniform/css/uniform.default.css" rel="stylesheet" />
+    <link href="assets/global/plugins/bootstrap-switch/css/bootstrap-switch.min.css" rel="stylesheet" />
+
+    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+
+    <!-- THEME STYLES -->
+    <link href="assets/global/css/components.min.css" rel="stylesheet" />
+    <link href="assets/global/css/plugins.min.css" rel="stylesheet" />
+    <link href="assets/layouts/layout3/css/layout.min.css" rel="stylesheet" />
+    <link href="assets/layouts/layout3/css/themes/default.min.css" rel="stylesheet" />
+    <link href="assets/layouts/layout3/css/custom.min.css" rel="stylesheet" />
+
+    <style>
+        /* ================= NAVBAR FIX ================= */
+
+        .page-header-menu {
+            width: 100% !important;
+            background: #4f8f3f !important;
+        }
+
+        .page-header-menu .container {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+
+        .hor-menu {
+            width: 100% !important;
+            text-align: center;
+            background: #4f8f3f !important;
+            overflow: visible !important;
+        }
+
+        /* Default left alignment for multiple menus */
+        .hor-menu .nav.navbar-nav {
+            float: left !important;
+            margin: 0 !important;
+        }
+
+        /* Center single menu (Guest case) */
+        .hor-menu .nav.navbar-nav li:only-child {
+            float: none !important;
+            display: inline-block !important;
+        }
+
+        .hor-menu .nav.navbar-nav > li > a {
+            white-space: nowrap !important;
+            padding: 12px 18px !important;
+            font-size: 14px !important;
+            color: #fff !important;
+        }
+
+        .hor-menu .nav.navbar-nav > li > a:hover {
+            background: #3e7c31 !important;
+        }
+
+        .hor-menu .dropdown-menu {
+            min-width: 200px !important;
+        }
+
+        /* HEADER TEXT */
+        .title-center1 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #54A624;
+        }
+
+        .title-center2 {
+            font-size: 22px;
+            font-weight: bold;
+            color: #006EBD;
+        }
+
+        .title-center3 {
+            font-size: 14px;
+            font-weight: bold;
+            color: #54A624;
+        }
+    </style>
+</head>
+
+<body class="page-container-bg-solid page-boxed">
+
+    <div class="page-header">
+
+        <!-- HEADER TOP -->
+        <div class="page-header-top">
+            <div class="container">
+
+                <div class="page-logo">
+                    <a href="#">
+                        <img src="assets/img/logo.png" class="logo-default" />
+                    </a>
+                </div>
+
+                <div class="top-menu">
+                    <ul class="nav navbar-nav pull-right">
+
+                        <li style="text-align:center; padding-right:80px;">
+                            <span class="title-center1">Government of Jharkhand</span><br />
+                            <span class="title-center2">Transport Department</span><br />
+                            <span class="title-center3">Online State Permit System</span>
+                        </li>
+
+                        <li>
+                            <div id="username" runat="server" class="username username-hide-mobile"></div>
+                            <div><a href="STA-CHANGE-PASSWORD.aspx">Change Password</a></div>
+                            <div><a href="LogOut.aspx">Log Out</a></div>
+                        </li>
+
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- HEADER MENU -->
+        <div class="page-header-menu">
+            <div class="container">
+
+                <div class="hor-menu">
+                    <ul id="ulMenu" runat="server" class="nav navbar-nav"></ul>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server"></asp:ContentPlaceHolder>
+
+    <!-- FOOTER -->
+    <div class="page-footer">
+        <div class="container">
+            All Rights Reserved by Government of Jharkhand, India.
+        </div>
+    </div>
+
+    <div class="scroll-to-top">
+        <i class="icon-arrow-up"></i>
+    </div>
+
+    <!-- JS FILES -->
+    <script src="assets/global/plugins/jquery.min.js"></script>
+    <script src="assets/global/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/global/plugins/js.cookie.min.js"></script>
+    <script src="assets/global/plugins/bootstrap-hover-dropdown/bootstrap-hover-dropdown.min.js"></script>
+    <script src="assets/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="assets/global/plugins/uniform/jquery.uniform.min.js"></script>
+    <script src="assets/global/plugins/bootstrap-switch/js/bootstrap-switch.min.js"></script>
+
+    <script src="assets/global/scripts/app.min.js"></script>
+    <script src="assets/layouts/layout3/scripts/layout.min.js"></script>
+
+    <asp:ContentPlaceHolder ID="ContentPlaceHolder2" runat="server"></asp:ContentPlaceHolder>
+
+</body>
+</html>
