@@ -314,7 +314,7 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             // Persist the exact transaction before redirecting to the gateway.
             MiscPaymentService.CreateTransaction(deptTranId, Convert.ToInt32(Session["MISC_APP_ID"]),
                 appNumber, Convert.ToString(Session["MISC_APP_NAME"]), authority, reasonId, amount,
-                fieldsJson, deptId, receiptHead, treasury, office);
+                fieldsJson, reasonInfo, deptId, receiptHead, treasury, office);
 
             Response.Redirect("MISC_PAYMENT_REQUEST.aspx?q=" +
                 HttpUtility.UrlEncode(encrypted, Response.ContentEncoding), false);
