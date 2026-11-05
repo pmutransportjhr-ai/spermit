@@ -303,8 +303,11 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             string deptTranId = DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture);
             string reasonInfo = "MISC-" + authority + "-" + reasonId.ToString(CultureInfo.InvariantCulture);
             string operationFor = Convert.ToString(selected[0]["REASON_NAME"]);
+            string applicantName = Convert.ToString(Session["MISC_APP_NAME"]);
+            if (operationFor.Contains("|") || applicantName.Contains("|") || appNumber.Contains("|"))
+                throw new InvalidOperationException("Payment details contain an unsupported separator character.");
             string encrypted = PayGetWayDTO.MakeEncryptedData(deptId, receiptHead,
-                Convert.ToString(Session["MISC_APP_NAME"]), deptTranId,
+                applicantName, deptTranId,
                 amount.ToString("0.00", CultureInfo.InvariantCulture), appNumber, "NA",
                 operationFor, Convert.ToString(Session["MISC_APP_ID"]),
                 reasonInfo, treasury, office, securityCode);
@@ -313,7 +316,7 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
 
             // Persist the exact transaction before redirecting to the gateway.
             MiscPaymentService.CreateTransaction(deptTranId, Convert.ToInt32(Session["MISC_APP_ID"]),
-                appNumber, Convert.ToString(Session["MISC_APP_NAME"]), authority, reasonId, amount,
+                appNumber, applicantName, authority, reasonId, amount,
                 fieldsJson, reasonInfo, deptId, receiptHead, treasury, office);
 
             Response.Redirect("MISC_PAYMENT_REQUEST.aspx?q=" +
