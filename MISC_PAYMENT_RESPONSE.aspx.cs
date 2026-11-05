@@ -37,7 +37,10 @@ public partial class MISC_PAYMENT_RESPONSE : Page
             if (gatewayAmount != Convert.ToDecimal(stored["AMOUNT"]) ||
                 gatewayAppId != Convert.ToInt32(stored["APP_ID"]) ||
                 !string.Equals(data[5], Convert.ToString(stored["APPLICATION_NUMBER"]), StringComparison.OrdinalIgnoreCase) ||
-                !string.Equals(data[7], "MISCELLANEOUS PAYMENT", StringComparison.Ordinal))
+                !string.Equals(data[7], "MISCELLANEOUS PAYMENT", StringComparison.Ordinal) ||
+                !string.Equals(data[9], "MISC-" + Convert.ToString(stored["AUTHORITY_CODE"]) + "-" + Convert.ToString(stored["REASON_ID"]), StringComparison.Ordinal) ||
+                !string.Equals(data[0], Convert.ToString(stored["DEPTID"]), StringComparison.Ordinal) ||
+                !string.Equals(data[1], Convert.ToString(stored["RECEIPTHEADCODE"]), StringComparison.Ordinal))
                 throw new InvalidOperationException("Gateway response did not match the initiated transaction.");
 
             string status = (data[12] ?? "").Trim().ToUpperInvariant();
@@ -47,11 +50,15 @@ public partial class MISC_PAYMENT_RESPONSE : Page
                 throw new InvalidOperationException("Unrecognized gateway transaction status: " + status);
 
             DateTime parsedDate;
-            DateTime? txnDate = DateTime.TryParse(data[17], CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeLocal, out parsedDate) ? (DateTime?)parsedDate : null;
+            bool dateParsed = DateTime.TryParse(data[17], CultureInfo.GetCultureInfo("en-GB"),
+                DateTimeStyles.AssumeLocal, out parsedDate);
+            if (!dateParsed) dateParsed = DateTime.TryParse(data[17], CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeLocal, out parsedDate);
+            DateTime? txnDate = dateParsed ? (DateTime?)parsedDate : null;
             decimal parsedTxnAmount;
             decimal? txnAmount = decimal.TryParse(data[18], NumberStyles.Number,
-                CultureInfo.InvariantCulture, out parsedTxnAmount) ? (decimal?)parsedTxnAmount : null;
+                CultureInfo.InvariantCulture, out parsedTxnAmount) && parsedTxnAmount > 0
+                ? (decimal?)parsedTxnAmount : gatewayAmount;
 
             MiscPaymentService.SaveGatewayResponse(deptTranId, status, data[13], data[16], data[20],
                 txnDate, txnAmount, data[19], data[14], data[15], data[0], data[1],
