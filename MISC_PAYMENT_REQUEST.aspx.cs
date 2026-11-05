@@ -37,7 +37,7 @@ public partial class MISC_PAYMENT_REQUEST : Page
                 Convert.ToString(row["APPLICATION_NUMBER"]) == data[5] &&
                 Convert.ToInt32(row["APP_ID"]) == appId &&
                 Convert.ToDecimal(row["AMOUNT"]) == amount &&
-                Convert.ToString(row["OPERATION_FOR"]) == data[7] &&
+                string.Equals(Convert.ToString(row["OPERATION_FOR"]), data[7], StringComparison.Ordinal) &&
                 string.Equals(data[2], Convert.ToString(row["APPLICANT_NAME"]), StringComparison.Ordinal) &&
                 string.Equals(data[9], "MISC-" + Convert.ToString(row["AUTHORITY_CODE"]) + "-" + Convert.ToString(row["REASON_ID"]), StringComparison.Ordinal) &&
                 Convert.ToString(row["CFG_DEPTID"]) == data[0] &&
