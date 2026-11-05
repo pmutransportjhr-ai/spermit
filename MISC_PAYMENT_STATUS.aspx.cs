@@ -1,5 +1,7 @@
 using System;
+using System.Configuration;
 using System.Data;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -12,46 +14,138 @@ using SoftEra.JHT.Infrastructure;
 
 public partial class MISC_PAYMENT_STATUS : Page
 {
-    protected void Page_Load(object sender, EventArgs e) { }
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            DivMobileValidate.Visible = false;
+            DivOTPMatch.Visible = false;
+            gvTransactions.Visible = false;
+        }
+    }
 
     protected void btnSearch_Click(object sender, EventArgs e)
     {
+        Session.Remove("MISC_STATUS_VERIFIED_APP");
         string applicationNumber = txtApplicationNumber.Text.Trim();
         if (string.IsNullOrWhiteSpace(applicationNumber))
         {
-            lblMessage.Text = "Enter an application number.";
-            lblMessage.Visible = true;
-            gvTransactions.DataSource = null;
-            gvTransactions.DataBind();
+            ShowMessage("Enter an application number.");
             return;
         }
-        BindTransactions(applicationNumber);
+
+        using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
+        using (SqlCommand cmd = new SqlCommand("SP_VIEW_APPLICATION_STATUS", con))
+        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+        {
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add("@APPLICATION_NUMBER", SqlDbType.VarChar, 120).Value = applicationNumber;
+            cmd.Parameters.Add("@MODE", SqlDbType.VarChar, 40).Value = applicationNumber.Contains("(PTT)") ? "CS_APPLICATION_NUMBER" : "VERIFY_APPLICATION_NUMBER";
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+            if (dt.Rows.Count == 0 || dt.Columns.Contains("MSG"))
+            {
+                ShowMessage(dt.Rows.Count == 0 ? "Application not found." : Convert.ToString(dt.Rows[0]["MSG"]));
+                return;
+            }
+            HFTableName.Value = Convert.ToString(dt.Rows[0]["TABLE_NAME"]);
+            HFPermitNo.Value = dt.Columns.Contains("PERMIT_NUMBER") ? Convert.ToString(dt.Rows[0]["PERMIT_NUMBER"]) : "";
+            DivMobileValidate.Visible = true;
+            DivOTPMatch.Visible = false;
+            gvTransactions.Visible = false;
+            lblMessage.Visible = false;
+        }
+    }
+
+    protected void btnOTP_Click(object sender, EventArgs e)
+    {
+        string mobile = txtMobileNumber.Value.Trim();
+        if (mobile.Length != 10) { ShowMessage("Enter a valid 10 digit mobile number."); return; }
+        using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
+        using (SqlCommand cmd = new SqlCommand("SP_VIEW_APPLICATION_STATUS", con))
+        {
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add("@APPLICATION_NUMBER", SqlDbType.VarChar, 120).Value = txtApplicationNumber.Text.Trim();
+            cmd.Parameters.Add("@PERMIT_NUMBER", SqlDbType.VarChar, 100).Value = HFPermitNo.Value;
+            cmd.Parameters.Add("@TABLE_NAME", SqlDbType.VarChar, 128).Value = HFTableName.Value;
+            cmd.Parameters.Add("@MOBILE_NUMBER", SqlDbType.VarChar, 10).Value = mobile;
+            cmd.Parameters.Add("@MODE", SqlDbType.VarChar, 40).Value = "VERIFY_MOBILE_NUMBER";
+            con.Open();
+            object otp = cmd.ExecuteScalar();
+            if (otp == null || Convert.ToString(otp) == "MOBILE NUMBER NOT FOUND")
+            {
+                ShowMessage("Mobile number does not match the application record.");
+                return;
+            }
+            new SMSSender().Sendsms(mobile, Convert.ToString(otp), "1307161527893297291");
+            txtMobileNumber.Disabled = true;
+            btnOTP.Enabled = false;
+            DivOTPMatch.Visible = true;
+            lblMessage.Visible = false;
+        }
+    }
+
+    protected void btnVerifyOTP_Click(object sender, EventArgs e)
+    {
+        using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
+        using (SqlCommand cmd = new SqlCommand("SP_VIEW_APPLICATION_STATUS", con))
+        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+        {
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add("@APPLICATION_NUMBER", SqlDbType.VarChar, 120).Value = txtApplicationNumber.Text.Trim();
+            cmd.Parameters.Add("@TABLE_NAME", SqlDbType.VarChar, 128).Value = HFTableName.Value;
+            cmd.Parameters.Add("@PERMIT_NUMBER", SqlDbType.VarChar, 100).Value = HFPermitNo.Value;
+            cmd.Parameters.Add("@OTP", SqlDbType.VarChar, 10).Value = txtOTP.Value.Trim();
+            cmd.Parameters.Add("@MODE", SqlDbType.VarChar, 40).Value = "VERIFY_OTP";
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+            if (dt.Rows.Count == 0)
+            {
+                ShowMessage("Invalid or expired OTP.");
+                return;
+            }
+            Session["MISC_STATUS_VERIFIED_APP"] = txtApplicationNumber.Text.Trim();
+            DivOTPMatch.Visible = false;
+            gvTransactions.Visible = true;
+            BindTransactions(txtApplicationNumber.Text.Trim());
+        }
     }
 
     protected void gvTransactions_RowCommand(object sender, GridViewCommandEventArgs e)
     {
         if (e.CommandName != "VERIFY") return;
+        if (!string.Equals(Convert.ToString(Session["MISC_STATUS_VERIFIED_APP"]),
+            txtApplicationNumber.Text.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            ShowMessage("Verify the registered mobile number before checking payment status.");
+            return;
+        }
         try
         {
             VerifyTransaction(Convert.ToString(e.CommandArgument));
             BindTransactions(txtApplicationNumber.Text.Trim());
-            lblMessage.Text = "JEGRAS verification completed. Review the latest transaction status below.";
-            lblMessage.Visible = true;
+            ShowMessage("JEGRAS verification completed. Review the latest transaction status below.");
         }
         catch (Exception ex)
         {
-            lblMessage.Text = "Verification could not be completed: " + Server.HtmlEncode(ex.Message);
-            lblMessage.Visible = true;
+            ShowMessage("Verification could not be completed: " + ex.Message);
         }
     }
 
     private void BindTransactions(string applicationNumber)
     {
         DataTable dt = MiscPaymentService.GetTransactionsByApplication(applicationNumber);
+        gvTransactions.Visible = true;
         gvTransactions.DataSource = dt;
         gvTransactions.DataBind();
         lblMessage.Visible = dt.Rows.Count == 0;
         if (dt.Rows.Count == 0) lblMessage.Text = "No miscellaneous payment transactions found.";
+    }
+
+    private void ShowMessage(string message)
+    {
+        lblMessage.Text = Server.HtmlEncode(message);
+        lblMessage.Visible = true;
     }
 
     private void VerifyTransaction(string deptTranId)
