@@ -71,9 +71,9 @@ Use SP_MISC_PAYMENT_REASON_AED with SAVE_REASON or SAVE_FIELD for controlled cat
 4. Reason list is loaded from MISC_PAYMENT_REASON_MASTER for the selected authority. Dynamic fields are loaded from MISC_PAYMENT_REASON_FIELD_MASTER.
 5. Server validates the active reason, fixed/variable amount, required fields, and selected authority against the application type.
 6. Server generates a unique DEPTTRANID, creates an INITIATED row through SP_MISC_PAYMENT_TRANSACTION_AED, and builds the JEGRAS request using PayGetWayDTO.MakeEncryptedData. OPERATION_FOR carries the selected reason name (for example, STA Counter Signature Tax Pay), matching the existing payment-history convention; the stable reason ID and authority are also retained in the new table and ADDINFO3.
-7. MISC_PAYMENT_REQUEST.aspx decrypts and validates the request, then posts requestparam to https://finance.jharkhand.gov.in/jegras/payment.aspx.
+7. MISC_PAYMENT_REQUEST.aspx decrypts and validates the request, atomically changes the row from INITIATED to REQUESTED to prevent a second browser submission, then posts requestparam to https://finance.jharkhand.gov.in/jegras/payment.aspx.
 8. JEGRAS returns responseparam. MISC_PAYMENT_RESPONSE.aspx decrypts the 22-field response, validates DEPTTRANID, application, amount, operation, reason, department and receipt head, then saves status, message, reference, mode, transaction date/amount, challan URL, GRN, CIN and treasury metadata through the new transaction procedure.
-9. Applicant can open MISC_PAYMENT_STATUS.aspx. The page shows the new table's history and can call JEGRAS SBIePayDoubleVerification for INITIATED, BOOKED or FAIL records. Verification results are saved through UPDATE_VERIFICATION mode.
+9. Applicant can open MISC_PAYMENT_STATUS.aspx. The page shows the new table's history and can call JEGRAS SBIePayDoubleVerification for REQUESTED, BOOKED or FAIL records. Verification results are saved through UPDATE_VERIFICATION mode.
 
 ## Critical Finance gateway dependency
 
