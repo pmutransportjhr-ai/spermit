@@ -8,11 +8,31 @@
             <h3>Miscellaneous Payment Status</h3>
             <div class="row">
                 <div class="col-md-7"><asp:TextBox ID="txtApplicationNumber" runat="server" CssClass="form-control" MaxLength="120" placeholder="Application Number" /></div>
-                <div class="col-md-3"><asp:Button ID="btnSearch" runat="server" Text="Search Payments" CssClass="btn btn-primary" OnClick="btnSearch_Click" /></div>
+                <div class="col-md-3"><asp:Button ID="btnSearch" runat="server" Text="Find Application" CssClass="btn btn-primary" OnClick="btnSearch_Click" /></div>
+            </div>
+            <asp:HiddenField ID="HFTableName" runat="server" />
+            <asp:HiddenField ID="HFPermitNo" runat="server" />
+            <div id="DivMobileValidate" runat="server" visible="false" class="row" style="margin-top:18px;">
+                <div class="col-md-6">
+                    <label>Registered Mobile Number</label>
+                    <input type="text" runat="server" id="txtMobileNumber" class="form-control" maxlength="10" placeholder="Registered mobile number" />
+                </div>
+                <div class="col-md-3">
+                    <asp:Button ID="btnOTP" runat="server" Text="Send OTP" CssClass="btn btn-primary" OnClick="btnOTP_Click" />
+                </div>
+            </div>
+            <div id="DivOTPMatch" runat="server" visible="false" class="row" style="margin-top:18px;">
+                <div class="col-md-6">
+                    <label>Enter OTP</label>
+                    <input type="text" runat="server" id="txtOTP" class="form-control" maxlength="6" placeholder="Enter OTP" />
+                </div>
+                <div class="col-md-3">
+                    <asp:Button ID="btnVerifyOTP" runat="server" Text="Verify OTP" CssClass="btn btn-success" OnClick="btnVerifyOTP_Click" />
+                </div>
             </div>
             <br />
             <asp:Label ID="lblMessage" runat="server" Visible="false" CssClass="alert alert-info" />
-            <asp:GridView ID="gvTransactions" runat="server" AutoGenerateColumns="false" CssClass="table table-bordered table-striped"
+            <asp:GridView ID="gvTransactions" runat="server" Visible="false" AutoGenerateColumns="false" CssClass="table table-bordered table-striped"
                 OnRowCommand="gvTransactions_RowCommand" EmptyDataText="No transactions found.">
                 <Columns>
                     <asp:BoundField DataField="DEPTTRANID" HeaderText="Transaction ID" />
