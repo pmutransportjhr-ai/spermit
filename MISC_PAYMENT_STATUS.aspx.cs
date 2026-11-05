@@ -78,6 +78,7 @@ public partial class MISC_PAYMENT_STATUS : Page
             REQDEPTID = Convert.ToString(stored["DEPTID"])
         });
 
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         HttpWebRequest request = (HttpWebRequest)WebRequest.Create(
             "https://finance.jharkhand.gov.in/JEgrasDV/JeGrasRestful.svc/SBIePayDoubleVerification");
         request.Method = "POST";
@@ -106,7 +107,11 @@ public partial class MISC_PAYMENT_STATUS : Page
 
         string decrypted = new clsEncrypt().Decrypt(encryptedValue.Replace("\\", ""), encryptionKey);
         string[] data = decrypted.Split('|');
-        if (data.Length < 22 || !string.Equals(data[3], deptTranId, StringComparison.Ordinal))
+        if (data.Length < 22 || !string.Equals(data[3], deptTranId, StringComparison.Ordinal) ||
+            !string.Equals(data[5], Convert.ToString(stored["APPLICATION_NUMBER"]), StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(data[7], "MISCELLANEOUS PAYMENT", StringComparison.Ordinal) ||
+            !string.Equals(data[9], "MISC-" + Convert.ToString(stored["AUTHORITY_CODE"]) + "-" + Convert.ToString(stored["REASON_ID"]), StringComparison.Ordinal) ||
+            !string.Equals(data[0], Convert.ToString(stored["DEPTID"]), StringComparison.Ordinal))
             throw new InvalidOperationException("JEGRAS verification response did not match the requested transaction.");
 
         decimal gatewayAmount;
