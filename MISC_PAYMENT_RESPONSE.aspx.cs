@@ -56,9 +56,9 @@ public partial class MISC_PAYMENT_RESPONSE : Page
                 DateTimeStyles.AssumeLocal, out parsedDate);
             DateTime? txnDate = dateParsed ? (DateTime?)parsedDate : null;
             decimal parsedTxnAmount;
-            decimal? txnAmount = decimal.TryParse(data[18], NumberStyles.Number,
-                CultureInfo.InvariantCulture, out parsedTxnAmount) && parsedTxnAmount > 0
-                ? (decimal?)parsedTxnAmount : gatewayAmount;
+            decimal? txnAmount = status == "FAIL" ? (decimal?)0 :
+                (decimal.TryParse(data[18], NumberStyles.Number, CultureInfo.InvariantCulture, out parsedTxnAmount) && parsedTxnAmount > 0
+                    ? (decimal?)parsedTxnAmount : gatewayAmount);
 
             MiscPaymentService.SaveGatewayResponse(deptTranId, status, data[13], data[16], data[20],
                 txnDate, txnAmount, data[19], data[14], data[15], data[0], data[1],
