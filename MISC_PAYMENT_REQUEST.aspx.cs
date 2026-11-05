@@ -46,6 +46,7 @@ public partial class MISC_PAYMENT_REQUEST : Page
 
             if (!valid) { Reject("Payment request does not match the stored transaction."); return; }
             requestparam.Value = encrypted;
+            gatewayForm.Action = "https://finance.jharkhand.gov.in/jegras/payment.aspx";
             gatewayForm.Visible = true;
             ClientScript.RegisterStartupScript(GetType(), "submitJegras",
                 "window.setTimeout(function(){document.getElementById('gatewayForm').submit();},100);", true);
