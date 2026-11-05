@@ -7,6 +7,10 @@ using SoftEra.JHT.Infrastructure;
 
 public partial class MISC_PAYMENT_REQUEST : Page
 {
+    protected bool IsValidRequest = false;
+    protected string RequestPayload = "";
+    protected string ErrorMessage = "";
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (IsPostBack) return;
@@ -48,9 +52,8 @@ public partial class MISC_PAYMENT_REQUEST : Page
 
             if (!valid) { Reject("Payment request does not match the stored transaction."); return; }
             MiscPaymentService.MarkRequested(deptTranId);
-            gatewayPanel.Visible = true;
-            ClientScript.RegisterStartupScript(GetType(), "submitJegras",
-                "window.setTimeout(function(){document.getElementById('gatewayForm').submit();},100);", true);
+            RequestPayload = encrypted;
+            IsValidRequest = true;
         }
         catch
         {
@@ -60,8 +63,7 @@ public partial class MISC_PAYMENT_REQUEST : Page
 
     private void Reject(string message)
     {
-        gatewayPanel.Visible = false;
-        errorMessage.InnerText = message;
-        errorPanel.Visible = true;
+        IsValidRequest = false;
+        ErrorMessage = message;
     }
 }
