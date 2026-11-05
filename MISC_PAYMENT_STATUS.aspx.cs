@@ -109,12 +109,22 @@ public partial class MISC_PAYMENT_STATUS : Page
         if (data.Length < 22 || !string.Equals(data[3], deptTranId, StringComparison.Ordinal))
             throw new InvalidOperationException("JEGRAS verification response did not match the requested transaction.");
 
-        decimal amount;
-        decimal? txnAmount = decimal.TryParse(data[18], NumberStyles.Number, CultureInfo.InvariantCulture, out amount)
-            ? (decimal?)amount : null;
+        decimal gatewayAmount;
+        if (!decimal.TryParse(data[4], NumberStyles.Number, CultureInfo.InvariantCulture, out gatewayAmount) ||
+            gatewayAmount != Convert.ToDecimal(stored["AMOUNT"]))
+            throw new InvalidOperationException("JEGRAS verification amount does not match the stored transaction.");
+
+        decimal parsedAmount;
+        string verifiedStatus = (data[12] ?? "").Trim().ToUpperInvariant();
+        decimal? txnAmount = verifiedStatus == "FAIL" ? (decimal?)0 :
+            (decimal.TryParse(data[18], NumberStyles.Number, CultureInfo.InvariantCulture, out parsedAmount) && parsedAmount > 0
+                ? (decimal?)parsedAmount : gatewayAmount);
         DateTime parsedDate;
-        DateTime? txnDate = DateTime.TryParse(data[17], CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out parsedDate)
-            ? (DateTime?)parsedDate : null;
+        bool dateParsed = DateTime.TryParse(data[17], CultureInfo.GetCultureInfo("en-GB"),
+            DateTimeStyles.AssumeLocal, out parsedDate);
+        if (!dateParsed) dateParsed = DateTime.TryParse(data[17], CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeLocal, out parsedDate);
+        DateTime? txnDate = dateParsed ? (DateTime?)parsedDate : null;
         string status = (data[12] ?? "").Trim().ToUpperInvariant();
         if (status == "SUCCESSFUL") status = "SUCCESS";
         if (status == "PENDING") status = "BOOKED";
@@ -123,6 +133,6 @@ public partial class MISC_PAYMENT_STATUS : Page
 
         MiscPaymentService.SaveGatewayResponse(deptTranId, status, data[13], data[16], data[20],
             txnDate, txnAmount, data[19], data[14], data[15], data[0], data[1],
-            data[6], data[10], data[11], data[21]);
+            data[6], data[10], data[11], data[21], "UPDATE_VERIFICATION");
     }
 }
