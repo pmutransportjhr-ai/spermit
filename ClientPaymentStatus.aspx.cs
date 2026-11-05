@@ -550,11 +550,11 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
     protected void btnGenerateReceipt_Click(object sender, EventArgs e)
     {
         object[] args = Session[PendingReceiptSessionKey] as object[];
-        DateTime createdUtc;
         object createdValue = Session[PendingReceiptCreatedUtcSessionKey];
-        bool hasValidTimestamp = createdValue is DateTime
-            && DateTime.TryParse(Convert.ToString(createdValue), out createdUtc)
-            && DateTime.UtcNow.Subtract(createdUtc).TotalMinutes <= 15;
+        double receiptAgeMinutes = createdValue is DateTime
+            ? DateTime.UtcNow.Subtract((DateTime)createdValue).TotalMinutes
+            : double.MaxValue;
+        bool hasValidTimestamp = receiptAgeMinutes >= 0 && receiptAgeMinutes <= 15;
 
         if (args == null || args.Length != 26 || Convert.ToString(args[5]) != "SUCCESS"
             || !hasValidTimestamp)
