@@ -255,13 +255,25 @@
                 if (prm && !prm._endReqAttached) {
                     prm._endReqAttached = true;
                     prm.add_endRequest(function (sender, args) {
+                        // EndRequest is the client-side PageRequestManager event.
+                        // Always release the page loaders, including after a failed async postback.
                         hideAllLoaders();
                         setTimeout(hideAllLoaders, 150);
                         setTimeout(hideAllLoaders, 400);
+
+                        var error = args && typeof args.get_error === 'function'
+                            ? args.get_error()
+                            : null;
+
+                        if (error) {
+                            console.error("ASP.NET asynchronous postback failed:", error);
+                            if (typeof args.set_errorHandled === 'function') {
+                                args.set_errorHandled(true);
+                            }
+                        }
                     });
-                    prm.add_asyncPostBackError(function (sender, args) {
-                        hideAllLoaders();
-                    });
+                    // add_asyncPostBackError is a server-side ScriptManager event;
+                    // it is not exposed by the client-side PageRequestManager.
                 }
             }
         }
