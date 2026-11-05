@@ -73,7 +73,7 @@ Use SP_MISC_PAYMENT_REASON_AED with SAVE_REASON or SAVE_FIELD for controlled cat
 6. Server generates a unique DEPTTRANID, creates an INITIATED row through SP_MISC_PAYMENT_TRANSACTION_AED, and builds the JEGRAS request using PayGetWayDTO.MakeEncryptedData. OPERATION_FOR carries the selected reason name (for example, STA Counter Signature Tax Pay), matching the existing payment-history convention; the stable reason ID and authority are also retained in the new table and ADDINFO3.
 7. MISC_PAYMENT_REQUEST.aspx decrypts and validates the request, atomically changes the row from INITIATED to REQUESTED to prevent a second browser submission, then posts requestparam to https://finance.jharkhand.gov.in/jegras/payment.aspx.
 8. JEGRAS returns responseparam. MISC_PAYMENT_RESPONSE.aspx decrypts the 22-field response, validates DEPTTRANID, application, amount, operation, reason, department and receipt head, then saves status, message, reference, mode, transaction date/amount, challan URL, GRN, CIN and treasury metadata through the new transaction procedure.
-9. Applicant can open MISC_PAYMENT_STATUS.aspx. The page shows the new table's history and can call JEGRAS SBIePayDoubleVerification for REQUESTED, BOOKED or FAIL records. Verification results are saved through UPDATE_VERIFICATION mode.
+9. Applicant can open MISC_PAYMENT_STATUS.aspx, re-verify the registered mobile OTP, and then view the new table's history. The page can call JEGRAS SBIePayDoubleVerification for REQUESTED, BOOKED or FAIL records. Verification results are saved through UPDATE_VERIFICATION mode.
 
 ## Critical Finance gateway dependency
 
@@ -91,7 +91,8 @@ The repository cannot change the response URL registered against the department'
 - [ ] Insert department-approved STA and RTA reason catalogue and dynamic fields.
 - [ ] Confirm application lookup returns APP_ID, OWNER_NAME, APPLICATION_NUMBER, and TABLE_TYPE for supported STA/RTA application types.
 - [ ] Verify authority mismatch is blocked.
-- [ ] Verify required dynamic fields and fixed amount validation.
+- [ ] Verify required dynamic fields, numeric/date field validation, and fixed amount validation.
+- [ ] Verify payment-status history is hidden until the registered-mobile OTP succeeds.
 - [ ] Confirm a pending row exists before redirecting to JEGRAS.
 - [ ] Confirm Finance callback reaches MISC_PAYMENT_RESPONSE.aspx.
 - [ ] Test SUCCESS, FAIL, BOOKED, malformed response, duplicate response, and browser-close scenarios.
