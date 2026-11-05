@@ -12,6 +12,8 @@ Run App_Data/Migrations/002_MiscellaneousPayment.sql against the Spermit JHT_LIV
 - MISC_PAYMENT_AUTHORITY_MASTER
 - MISC_PAYMENT_REASON_MASTER
 - MISC_PAYMENT_REASON_FIELD_MASTER
+- MISC_PAYMENT_REASON_OPTION_MASTER (including parent-dependent dropdown options)
+- MISC_PAYMENT_JEGRAS_MAPPING_MASTER (exact selected category/subcategory to JEGRAS mapping)
 - MISC_PAYMENT_TRANSACTION
 - SP_MISC_PAYMENT_REASON_AED
 - SP_MISC_PAYMENT_TRANSACTION_AED
@@ -28,6 +30,24 @@ The migration seeds the following values from patterns currently present in the 
 | RTA | JHTD | 004100102030101 | PRJ | PRJSES026 |
 
 Finance must confirm the receipt-head, treasury, and office mapping for both authorities before production use. These are source-code-derived defaults, not a Finance approval.
+
+## SBI Collect master catalogue (screenshot-derived)
+
+The migration now seeds the five visible SBI Collect payment categories and their form definitions:
+
+| Authority | Category | Main fields / dependent selections |
+|---|---|---|
+| STA | Objection Fee | Objector name/vehicle/permit, objection-against name/vehicle/permit, mobile, email, objection fee, remarks |
+| STA | Permit/Countersignature Fee | Fee Category, Type of Fee, applicant name/address, vehicle, permit/countersignature number, mobile, email, amount, remarks |
+| STA | Pollution Center/Fitness Center/Misc Fee | Type of Fee, applicant name/address, mobile, email, amount, remarks |
+| STA | Road Tax of Vehicle | Applicant, address, vehicle, reciprocal-state permit, countersignature number, tax period from/to, mobile, email, tax amount, remarks |
+| RTA | Regional Transport Authority Fees Jharkhand | RTA name, vehicle permit type, permit period, miscellaneous fee, applicant, address, vehicle, mobile, others, fee, remarks |
+
+The option master contains the values visible in the supplied screenshots: Permit Fee/Countersignature Fee; the listed STA fee types; Pollution Center Fee/Fitness Center Fee/Miscellaneous Fee; RTA names Ranchi, Hazaribagh, Palamu, Dumka and Kolhan; vehicle types Not Applicable, Passenger Vehicle, Goods Carrier, Auto Rikshaw and Jeep Taxi; permit periods Not Applicable, Permanent -05 Years, Temporary -119 Days, Special Permit-28 Days and Special Permit-14 Days; and Duplicate Permit Fee, Transfer Fee, Replacement Fee and Certified Copy Fee.
+
+MISC_PAYMENT_REASON_OPTION_MASTER supports parent-field and parent-option keys so the application can filter dependent dropdown values. MISC_PAYMENT_JEGRAS_MAPPING_MASTER stores the exact OPERATION_FOR, TR_TYPE, DEPTID, RECEIPTHEADCODE, TREASCODE, and IFMSOFFICECODE for the chosen category/subcategory.
+
+The supplied history extract establishes examples such as STA COUNTER SIGNATURE TAX PAY / STA-APPLICATION_q_MSTR, RTA PERMIT APPLICATION SCHOOL BUS / RTA-APPLICATION-SCHOOL-BUS, and RTA PERMIT ISSUE SCHOOL BUS / RTA-PERMIT-SCHOOL-BUS. It does not establish which exact form option selects every mapping. Therefore this migration does not guess or automatically assign those examples to unrelated fee types. Finance/department must populate the mapping table for each approved selection before enabling that payment. The transaction creation procedure rejects a category without configured OPERATION_FOR and TR_TYPE.
 
 ## Finance security configuration
 
