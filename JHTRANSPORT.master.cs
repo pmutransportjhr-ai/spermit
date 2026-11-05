@@ -302,6 +302,11 @@ public partial class JHTRANSPORT : System.Web.UI.MasterPage, System.Web.SessionS
 
         }
 
+        // Public miscellaneous payment links are deliberately static so they do not
+        // depend on the existing menu-management stored procedure.
+        sMenu += "<li><a href='MISCELLANEOUS_PAYMENT.aspx'>Miscellaneous Payment</a></li>";
+        sMenu += "<li><a href='MISC_PAYMENT_STATUS.aspx'>Miscellaneous Payment Status</a></li>";
+
         HtmlGenericControl myMenuControl = (HtmlGenericControl)Page.Master.FindControl("ulMenu");
         if (myMenuControl != null)
         {
