@@ -650,8 +650,11 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
                 redirectUrl = receiptResult + "?q=" + encryptedQuery;
             }
 
-            Response.Redirect(redirectUrl, false);
-            Context.ApplicationInstance.CompleteRequest();
+            // This button is inside an UpdatePanel; perform the redirect through
+            // ScriptManager so an async postback does not return a raw redirect response.
+            ScriptManager.RegisterStartupScript(
+                this, GetType(), Guid.NewGuid().ToString(),
+                "window.location.href='" + redirectUrl + "';", true);
         }
         catch (Exception ex)
         {
