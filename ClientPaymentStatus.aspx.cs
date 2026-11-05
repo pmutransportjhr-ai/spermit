@@ -35,6 +35,12 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
     {
          try
         {
+            // A new verification invalidates any previously prepared receipt.
+            Session.Remove(PendingReceiptSessionKey);
+            Session.Remove(PendingReceiptInProgressSessionKey);
+            Session.Remove(PendingReceiptCreatedUtcSessionKey);
+            btnSubmit.Visible = false;
+
             string verificationId = PaymentLogger.GenerateVerificationId();
             
             clsEncrypt encdept = new clsEncrypt();  // obeject of Encryption Decryption Class.
@@ -519,12 +525,14 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
 
     private const string PendingReceiptSessionKey = "ClientPaymentStatus.PendingReceipt";
     private const string PendingReceiptInProgressSessionKey = "ClientPaymentStatus.PendingReceiptInProgress";
+    private const string PendingReceiptCreatedUtcSessionKey = "ClientPaymentStatus.PendingReceiptCreatedUtc";
 
     private void SavePendingReceipt(object[] receiptArguments, string applicationNumber, string deptTranId)
     {
         Session.Remove(PendingReceiptSessionKey);
         Session.Remove(PendingReceiptInProgressSessionKey);
         Session[PendingReceiptSessionKey] = receiptArguments;
+        Session[PendingReceiptCreatedUtcSessionKey] = DateTime.UtcNow;
 
         btnSubmit.Visible = true;
         PaymentLogger.Info(
@@ -542,8 +550,18 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
     protected void btnGenerateReceipt_Click(object sender, EventArgs e)
     {
         object[] args = Session[PendingReceiptSessionKey] as object[];
-        if (args == null || args.Length != 25 || Convert.ToString(args[5]) != "SUCCESS")
+        DateTime createdUtc;
+        object createdValue = Session[PendingReceiptCreatedUtcSessionKey];
+        bool hasValidTimestamp = createdValue is DateTime
+            && DateTime.TryParse(Convert.ToString(createdValue), out createdUtc)
+            && DateTime.UtcNow.Subtract(createdUtc).TotalMinutes <= 15;
+
+        if (args == null || args.Length != 25 || Convert.ToString(args[5]) != "SUCCESS"
+            || !hasValidTimestamp)
         {
+            Session.Remove(PendingReceiptSessionKey);
+            Session.Remove(PendingReceiptInProgressSessionKey);
+            Session.Remove(PendingReceiptCreatedUtcSessionKey);
             btnSubmit.Visible = false;
             ScriptManager.RegisterStartupScript(this, GetType(), Guid.NewGuid().ToString(),
                 "alert('Your verified payment session has expired. Please check payment status again.');", true);
@@ -605,6 +623,7 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
 
             Session.Remove(PendingReceiptSessionKey);
             Session.Remove(PendingReceiptInProgressSessionKey);
+            Session.Remove(PendingReceiptCreatedUtcSessionKey);
 
             string redirectUrl;
             if (addInfo1 == "STA COUNTER SIGNATURE TAX PAY")
