@@ -198,15 +198,28 @@
 
                                                     <br />
 
-                                                    <!-- Hidden server button preserves the existing SBI double-verification and receipt flow. -->
+                                                    <!-- Server-side SBI verification postback. -->
                                                     <div style="display:none;">
                                                         <asp:Button
-                                                            ID="btnSubmit"
-                                                            Text="Submit"
+                                                            ID="btnVerifyPayment"
+                                                            Text="Verify Payment"
                                                             runat="server"
                                                             OnClick="btnSubmit_Click"
-                                                            CssClass="btn btn-success"
-                                                            Style="display: none;" />
+                                                            CausesValidation="false" />
+                                                    </div>
+
+                                                    <!-- Receipt generation is a separate, explicit user action. -->
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <asp:Button
+                                                                ID="btnSubmit"
+                                                                Text="Submit"
+                                                                runat="server"
+                                                                OnClick="btnGenerateReceipt_Click"
+                                                                CssClass="btn btn-success"
+                                                                CausesValidation="false"
+                                                                Visible="false" />
+                                                        </div>
                                                     </div>
 
                                                 </contenttemplate>
@@ -488,16 +501,29 @@
                 // The handler returns:
                 // Success~Submitted~<encrypted transaction data>
                 case "Submitted":
+                case "encry":
 
+                    var encryData = parts[2] || '';
+
+                    if (encryData === '') {
+                        $('#lblMessage').show().text('Transaction details are missing. Please try again.');
+                        $('input[id*=btnSubmit]').hide();
+                        return;
+                    }
+
+                    // Clear any previous receipt-ready state before verifying this transaction.
                     $('input[id*=btnSubmit]').hide();
+                    $('input[id*=lblencyValue]').val(encryData);
+                    $('#lblMessage').show().text('Checking the selected payment with SBI/JEGRAS. Please wait...');
 
-                    $('#lblMessage')
-                        .show()
-                        .text(
-                            'Payment has already been submitted successfully. ' +
-                            'No further verification is required.'
-                        );
-
+                    setTimeout(function () {
+                        var verifyButton = document.querySelector('input[id*="btnVerifyPayment"]');
+                        if (verifyButton) {
+                            verifyButton.click();
+                        } else {
+                            $('#lblMessage').text('Unable to start SBI payment verification. Please refresh and try again.');
+                        }
+                    }, 100);
                     break;
 
 
@@ -530,45 +556,7 @@
                     break;
 
 
-                // The handler returns:
-                // Success~encry~<encrypted transaction data>
-                // for a transaction that can be sent to the existing Submit flow.
-                case "encry":
 
-                    var encryData = parts[2] || '';
-
-                    if (encryData === '') {
-
-                        $('#lblMessage')
-                            .show()
-                            .text(
-                                'Transaction details are missing. Please try again.'
-                            );
-
-                        $('input[id*=btnSubmit]').hide();
-
-                        break;
-                    }
-
-                    // Populate the existing ASP.NET HiddenField.
-                    $('input[id*=lblencyValue]').val(encryData);
-
-                    $('#lblMessage')
-                        .show()
-                        .text('Checking the selected payment with SBI/JEGRAS. Please wait...');
-
-                    // Automatically post back to the existing server-side SBI verification
-                    // handler, which performs double verification and generates the receipt.
-                    setTimeout(function () {
-                        var submitButton = document.querySelector('input[id*="btnSubmit"]');
-                        if (submitButton) {
-                            submitButton.click();
-                        } else {
-                            $('#lblMessage').text('Unable to start SBI payment verification. Please refresh and try again.');
-                        }
-                    }, 100);
-
-                    break;
 
 
                 // Display an explanatory message returned by the handler.
