@@ -70,7 +70,7 @@ Use SP_MISC_PAYMENT_REASON_AED with SAVE_REASON or SAVE_FIELD for controlled cat
 3. Applicant verifies the registered mobile OTP. Application ID, owner name, application number, and STA/RTA type are taken from the verified application result, not from browser-supplied hidden values.
 4. Reason list is loaded from MISC_PAYMENT_REASON_MASTER for the selected authority. Dynamic fields are loaded from MISC_PAYMENT_REASON_FIELD_MASTER.
 5. Server validates the active reason, fixed/variable amount, required fields, and selected authority against the application type.
-6. Server generates a unique DEPTTRANID, creates an INITIATED row through SP_MISC_PAYMENT_TRANSACTION_AED, and builds the JEGRAS request using PayGetWayDTO.MakeEncryptedData.
+6. Server generates a unique DEPTTRANID, creates an INITIATED row through SP_MISC_PAYMENT_TRANSACTION_AED, and builds the JEGRAS request using PayGetWayDTO.MakeEncryptedData. OPERATION_FOR carries the selected reason name (for example, STA Counter Signature Tax Pay), matching the existing payment-history convention; the stable reason ID and authority are also retained in the new table and ADDINFO3.
 7. MISC_PAYMENT_REQUEST.aspx decrypts and validates the request, then posts requestparam to https://finance.jharkhand.gov.in/jegras/payment.aspx.
 8. JEGRAS returns responseparam. MISC_PAYMENT_RESPONSE.aspx decrypts the 22-field response, validates DEPTTRANID, application, amount, operation, reason, department and receipt head, then saves status, message, reference, mode, transaction date/amount, challan URL, GRN, CIN and treasury metadata through the new transaction procedure.
 9. Applicant can open MISC_PAYMENT_STATUS.aspx. The page shows the new table's history and can call JEGRAS SBIePayDoubleVerification for INITIATED, BOOKED or FAIL records. Verification results are saved through UPDATE_VERIFICATION mode.
@@ -100,4 +100,4 @@ The repository cannot change the response URL registered against the department'
 
 ## Reference UI flow
 
-SBI Collect exposes a staged payment experience: Select Payee, Enter Payment Details, Verify Payment Details, Complete Payment, and Print Receipt. Spermit follows the same staged interaction pattern but uses Spermit STA/RTA master data and JEGRAS. The exact STA/RTA reason catalogue must be supplied and approved by the department; it is not inferred from unrelated SBI Collect payees.
+SBI Collect exposes a staged payment experience: Select Payee, Enter Payment Details, Verify Payment Details, Complete Payment, and Print Receipt. Spermit follows the same staged interaction pattern but uses Spermit STA/RTA master data and JEGRAS. The exact STA/RTA reason catalogue must be supplied and approved by the department; it is not inferred from unrelated SBI Collect payees. The supplied payment-history example is retained as the model for OPERATION_FOR: it stores the selected reason name, while the new transaction table separately stores REASON_ID and AUTHORITY_CODE.
