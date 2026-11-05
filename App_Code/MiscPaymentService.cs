@@ -72,7 +72,7 @@ public static class MiscPaymentService
     }
 
     public static void CreateTransaction(string deptTranId, int appId, string applicationNumber,
-        string applicantName, string authorityCode, int reasonId, decimal amount, string fieldsJson,
+        string applicantName, string authorityCode, int reasonId, decimal amount, string fieldsJson, string trType,
         string deptId, string receiptHead, string treasury, string office)
     {
         using (SqlConnection con = new SqlConnection(ConnectionString))
@@ -86,6 +86,7 @@ public static class MiscPaymentService
             cmd.Parameters.Add("@APPLICANT_NAME", SqlDbType.NVarChar, 200).Value = applicantName;
             cmd.Parameters.Add("@AUTHORITY_CODE", SqlDbType.VarChar, 3).Value = authorityCode;
             cmd.Parameters.Add("@REASON_ID", SqlDbType.Int).Value = reasonId;
+            cmd.Parameters.Add("@TR_TYPE", SqlDbType.VarChar, 100).Value = trType;
             cmd.Parameters.Add("@AMOUNT", SqlDbType.Decimal).Value = amount;
             cmd.Parameters["@AMOUNT"].Precision = 18;
             cmd.Parameters["@AMOUNT"].Scale = 2;
