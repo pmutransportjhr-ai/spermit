@@ -301,18 +301,19 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 throw new InvalidOperationException("Configure JEGRAS_SECURITY_CODE in application settings before enabling payment.");
 
             string deptTranId = DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture);
-            MiscPaymentService.CreateTransaction(deptTranId, Convert.ToInt32(Session["MISC_APP_ID"]),
-                appNumber, Convert.ToString(Session["MISC_APP_NAME"]), authority, reasonId, amount,
-                fieldsJson, deptId, receiptHead, treasury, office);
-
             string reasonInfo = "MISC-" + authority + "-" + reasonId.ToString(CultureInfo.InvariantCulture);
             string encrypted = PayGetWayDTO.MakeEncryptedData(deptId, receiptHead,
                 Convert.ToString(Session["MISC_APP_NAME"]), deptTranId,
                 amount.ToString("0.00", CultureInfo.InvariantCulture), appNumber, "NA",
                 "MISCELLANEOUS PAYMENT", Convert.ToString(Session["MISC_APP_ID"]),
                 reasonInfo, treasury, office, securityCode);
-            if (string.IsNullOrWhiteSpace(encrypted))
-                throw new InvalidOperationException("Unable to prepare JEGRAS payment request.");
+            try { Convert.FromBase64String(encrypted); }
+            catch { throw new InvalidOperationException("Unable to prepare JEGRAS payment request. Check the Finance configuration."); }
+
+            // Persist the exact transaction before redirecting to the gateway.
+            MiscPaymentService.CreateTransaction(deptTranId, Convert.ToInt32(Session["MISC_APP_ID"]),
+                appNumber, Convert.ToString(Session["MISC_APP_NAME"]), authority, reasonId, amount,
+                fieldsJson, deptId, receiptHead, treasury, office);
 
             Response.Redirect("MISC_PAYMENT_REQUEST.aspx?q=" +
                 HttpUtility.UrlEncode(encrypted, Response.ContentEncoding), false);
