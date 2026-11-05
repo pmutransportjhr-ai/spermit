@@ -274,6 +274,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             decimal amount;
             if (!decimal.TryParse(txtAmount.Value, NumberStyles.Number, CultureInfo.InvariantCulture, out amount) || amount <= 0)
                 throw new InvalidOperationException("Enter a valid payment amount greater than zero.");
+            if (decimal.Round(amount, 2) != amount)
+                throw new InvalidOperationException("Payment amount can have a maximum of two decimal places.");
             if (Convert.ToString(selected[0]["AMOUNT_MODE"]) == "FIXED" &&
                 amount != Convert.ToDecimal(selected[0]["FIXED_AMOUNT"]))
                 throw new InvalidOperationException("Amount does not match the fixed amount for this reason.");
