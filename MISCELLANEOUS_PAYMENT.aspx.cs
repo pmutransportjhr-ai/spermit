@@ -302,10 +302,11 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
 
             string deptTranId = DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture);
             string reasonInfo = "MISC-" + authority + "-" + reasonId.ToString(CultureInfo.InvariantCulture);
+            string operationFor = Convert.ToString(selected[0]["REASON_NAME"]);
             string encrypted = PayGetWayDTO.MakeEncryptedData(deptId, receiptHead,
                 Convert.ToString(Session["MISC_APP_NAME"]), deptTranId,
                 amount.ToString("0.00", CultureInfo.InvariantCulture), appNumber, "NA",
-                "MISCELLANEOUS PAYMENT", Convert.ToString(Session["MISC_APP_ID"]),
+                operationFor, Convert.ToString(Session["MISC_APP_ID"]),
                 reasonInfo, treasury, office, securityCode);
             try { Convert.FromBase64String(encrypted); }
             catch { throw new InvalidOperationException("Unable to prepare JEGRAS payment request. Check the Finance configuration."); }
