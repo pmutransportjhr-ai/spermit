@@ -401,7 +401,7 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
                                 ADDINFO2, DEPOSITERID, DEPOSITERNAME, AMOUNT, ADDINFO1, "SUCCESS",
                                 PAYMENTSTATUSMESSAGE, REF_NO, PMODE, "", TXN_DATE, TXN_AMOUNT,
                                 CHALLAN_URL, GRN, CIN, DEPTID, RECIEPTHEADCODE, DEPTTRANID,
-                                PANNO, receiptType, TREASCODE, IFMSOFFICECODE, ADDINFO5, extra1, extra2
+                                PANNO, receiptType, TREASCODE, IFMSOFFICECODE, ADDINFO5, extra1, extra2, ADDINFO3
                             }, Application_number, DEPTTRANID1);
                             return;
                         }
@@ -450,7 +450,7 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
                         ADDINFO2, DEPOSITERID, DEPOSITERNAME, AMOUNT, ADDINFO1, "SUCCESS",
                         PAYMENTSTATUSMESSAGE, REF_NO, PMODE, "", TXN_DATE, TXN_AMOUNT,
                         CHALLAN_URL, GRN, CIN, DEPTID, RECIEPTHEADCODE, DEPTTRANID,
-                        PANNO, receiptType, TREASCODE, IFMSOFFICECODE, ADDINFO5, extra1, extra2
+                        PANNO, receiptType, TREASCODE, IFMSOFFICECODE, ADDINFO5, extra1, extra2, ADDINFO3
                     }, Application_number, DEPTTRANID1);
                     return;
                 }
@@ -556,7 +556,7 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
             && DateTime.TryParse(Convert.ToString(createdValue), out createdUtc)
             && DateTime.UtcNow.Subtract(createdUtc).TotalMinutes <= 15;
 
-        if (args == null || args.Length != 25 || Convert.ToString(args[5]) != "SUCCESS"
+        if (args == null || args.Length != 26 || Convert.ToString(args[5]) != "SUCCESS"
             || !hasValidTimestamp)
         {
             Session.Remove(PendingReceiptSessionKey);
@@ -598,6 +598,7 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
             string addInfo5 = Convert.ToString(args[22]);
             string extra1 = Convert.ToString(args[23]);
             string extra2 = Convert.ToString(args[24]);
+            string originalTrType = Convert.ToString(args[25]);
 
             string receiptResult = PaymentTransaction.AddTransactionDetails(
                 addInfo2, depositerId, depositerName, amount, addInfo1, status,
@@ -635,7 +636,7 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
                 string encryptedQuery = HttpUtility.UrlEncode(
                     CryptorEngine.Encrypt(
                         "APP_ID=" + addInfo2 + "&GRN=" + grn + "&TBL=" + tblType
-                        + "&TYPE=" + trType + "&APPLICATION_SERVICE=" + addInfo1,
+                        + "&TYPE=" + originalTrType + "&APPLICATION_SERVICE=" + addInfo1,
                         true), Response.ContentEncoding);
                 redirectUrl = targetUrl + "?q=" + encryptedQuery;
             }
@@ -643,7 +644,7 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
             {
                 string encryptedQuery = HttpUtility.UrlEncode(
                     CryptorEngine.Encrypt(
-                        "APP_ID=" + addInfo2 + "&TYPE=" + trType
+                        "APP_ID=" + addInfo2 + "&TYPE=" + originalTrType
                         + "&APPLICATION_SERVICE=" + addInfo1,
                         true), Response.ContentEncoding);
                 redirectUrl = receiptResult + "?q=" + encryptedQuery;
