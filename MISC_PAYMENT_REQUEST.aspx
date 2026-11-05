@@ -7,10 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
-    <form id="gatewayForm" runat="server" method="post" action="https://finance.jharkhand.gov.in/jegras/payment.aspx">
-        <input type="hidden" id="requestparam" name="requestparam" runat="server" />
-        <p>Redirecting securely to Jharkhand eGRAS. Please do not refresh this page.</p>
-    </form>
+    <asp:Panel ID="gatewayPanel" runat="server">
+        <form id="gatewayForm" method="post" action="https://finance.jharkhand.gov.in/jegras/payment.aspx">
+            <input type="hidden" name="requestparam" value="<%= Server.HtmlAttributeEncode(Request.QueryString["q"]) %>" />
+            <p>Redirecting securely to Jharkhand eGRAS. Please do not refresh this page.</p>
+        </form>
+    </asp:Panel>
     <div id="errorPanel" runat="server" visible="false">
         <h3>Unable to start payment</h3>
         <p id="errorMessage" runat="server"></p>
