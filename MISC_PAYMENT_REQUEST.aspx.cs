@@ -46,6 +46,7 @@ public partial class MISC_PAYMENT_REQUEST : Page
                 Convert.ToString(row["CFG_IFMSOFFICECODE"]) == data[11];
 
             if (!valid) { Reject("Payment request does not match the stored transaction."); return; }
+            MiscPaymentService.MarkRequested(deptTranId);
             gatewayPanel.Visible = true;
             ClientScript.RegisterStartupScript(GetType(), "submitJegras",
                 "window.setTimeout(function(){document.getElementById('gatewayForm').submit();},100);", true);
