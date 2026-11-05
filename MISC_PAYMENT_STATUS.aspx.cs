@@ -61,7 +61,7 @@ public partial class MISC_PAYMENT_STATUS : Page
         DataRow stored = tx.Rows[0];
         string currentStatus = Convert.ToString(stored["TRN_STATUS"]);
         if (currentStatus == "SUCCESS") return;
-        if (currentStatus != "BOOKED" && currentStatus != "FAIL" && currentStatus != "INITIATED")
+        if (currentStatus != "BOOKED" && currentStatus != "FAIL" && currentStatus != "INITIATED" && currentStatus != "REQUESTED")
             throw new InvalidOperationException("This transaction cannot be verified in its current state.");
 
         string securityCode = System.Configuration.ConfigurationManager.AppSettings["JEGRAS_SECURITY_CODE"];
