@@ -120,6 +120,8 @@
                             <li class="mb-2"><a href="PermitHomePage.aspx"><i class="fa fa-angle-right me-2"></i> Home</a></li>
                             <li class="mb-2"><a href="ApplicationStatusAndPayment.aspx"><i class="fa fa-angle-right me-2"></i> Track Application Status</a></li>
                             <li class="mb-2"><a href="ClientPaymentStatus.aspx"><i class="fa fa-angle-right me-2"></i> Check Payment Status</a></li>
+                            <li class="mb-2"><a href="MISCELLANEOUS_PAYMENT.aspx"><i class="fa fa-angle-right me-2"></i> Miscellaneous Payment</a></li>
+                            <li class="mb-2"><a href="MISC_PAYMENT_STATUS.aspx"><i class="fa fa-angle-right me-2"></i> Miscellaneous Payment Status</a></li>
                             <li class="mb-2"><a href="APPLICATION_NUMBER.aspx"><i class="fa fa-angle-right me-2"></i> Know Application Number</a></li>
                             <li class="mb-2"><a href="OFFICE-NOTICE.aspx"><i class="fa fa-angle-right me-2"></i> Latest Office Notices</a></li>
                         </ul>
