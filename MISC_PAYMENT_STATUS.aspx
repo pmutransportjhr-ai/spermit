@@ -31,8 +31,13 @@
                                 OnClientClick="return confirm('Check the latest payment status with JEGRAS?');" />
                         </ItemTemplate>
                     </asp:TemplateField>
-                    <asp:HyperLinkField DataTextField="CHALLAN_URL" DataNavigateUrlFields="CHALLAN_URL" HeaderText="Challan"
-                        Text="Open" Target="_blank" />
+                    <asp:TemplateField HeaderText="Challan">
+                        <ItemTemplate>
+                            <asp:HyperLink ID="lnkChallan" runat="server" Text="Open" Target="_blank"
+                                NavigateUrl='<%# Eval("CHALLAN_URL") %>'
+                                Visible='<%# !String.IsNullOrEmpty(Convert.ToString(Eval("CHALLAN_URL"))) %>' />
+                        </ItemTemplate>
+                    </asp:TemplateField>
                 </Columns>
             </asp:GridView>
             <p><a href="MISCELLANEOUS_PAYMENT.aspx">Make another miscellaneous payment</a></p>
