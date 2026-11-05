@@ -113,6 +113,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 TextBox input = new TextBox();
                 input.ID = "field_" + fieldId;
                 input.CssClass = "form-control";
+                input.MaxLength = 250;
+                input.Attributes["maxlength"] = "250";
                 if (type == "DATE") input.TextMode = TextBoxMode.Date;
                 else if (type == "NUMBER") input.TextMode = TextBoxMode.Number;
                 else if (type == "TEXTAREA") input.TextMode = TextBoxMode.MultiLine;
@@ -139,6 +141,15 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             }
             if (Convert.ToBoolean(row["IS_REQUIRED"]) && string.IsNullOrWhiteSpace(value))
                 throw new InvalidOperationException("Please enter " + Convert.ToString(row["FIELD_LABEL"]) + ".");
+            string fieldType = Convert.ToString(row["FIELD_TYPE"]);
+            decimal numericValue;
+            DateTime dateValue;
+            if (fieldType == "NUMBER" && !string.IsNullOrWhiteSpace(value) &&
+                !decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out numericValue))
+                throw new InvalidOperationException(Convert.ToString(row["FIELD_LABEL"]) + " must be numeric.");
+            if (fieldType == "DATE" && !string.IsNullOrWhiteSpace(value) &&
+                !DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue))
+                throw new InvalidOperationException(Convert.ToString(row["FIELD_LABEL"]) + " must be a valid date.");
             values[Convert.ToString(row["FIELD_KEY"])] = value;
         }
         return values.Count == 0 ? null : MiscPaymentService.ToJson(values);
