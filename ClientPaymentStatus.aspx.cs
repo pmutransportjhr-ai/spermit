@@ -351,9 +351,9 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
                                 "$('#loadingmessage').modal('hide');alert('Your payment has already been verified as SUCCESS.');window.location ='PermitHomepage.aspx';", true);
                             return;
                         }
-                        else if (updateResult == "ALREADY_SUCCESS")
+                        else if (updateResult == "ALREADY_SUCCESS" && STATUS != "SUCCESS")
                         {
-                            ScriptManager.RegisterClientScriptBlock((sender as Control), this.GetType(), Guid.NewGuid().ToString(), 
+                            ScriptManager.RegisterClientScriptBlock((sender as Control), this.GetType(), Guid.NewGuid().ToString(),
                                 "$('#loadingmessage').modal('hide');alert('Your payment has already been verified as SUCCESS.');window.location ='PermitHomepage.aspx';", true);
                             return;
                         }
@@ -379,37 +379,24 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
                         // Update succeeded — determine navigation
                         if (STATUS == "SUCCESS")
                         {
-                            // Re-verification changed FAIL → SUCCESS
-                            // Use existing AddTransactionDetails to get the receipt page URL
-                            if (ADDINFO1 == "STA COUNTER SIGNATURE TAX PAY" || (ADDINFO3 != null && ADDINFO3.StartsWith("STA-APPLICATION_") && ADDINFO3.Split('_').Length >= 3))
+                            string[] receiptParts = (ADDINFO3 ?? "").Split('_');
+                            string receiptType = ADDINFO3;
+                            string extra1 = "";
+                            string extra2 = "";
+                            if (ADDINFO1 == "STA COUNTER SIGNATURE TAX PAY"
+                                || (ADDINFO3 != null && ADDINFO3.StartsWith("STA-APPLICATION_") && receiptParts.Length >= 3))
                             {
-                                aa = ADDINFO3.Split('_');
-                                MSG = PaymentTransaction.AddTransactionDetails(ADDINFO2, DEPOSITERID, DEPOSITERNAME, AMOUNT, ADDINFO1, STATUS, PAYMENTSTATUSMESSAGE, REF_NO, PMODE, "", TXN_DATE, TXN_AMOUNT, CHALLAN_URL, GRN, CIN, DEPTID, RECIEPTHEADCODE, DEPTTRANID, PANNO, aa[0], TREASCODE, IFMSOFFICECODE, ADDINFO5, aa[1], aa[2]);
+                                receiptType = receiptParts[0];
+                                extra1 = receiptParts.Length > 1 ? receiptParts[1] : "";
+                                extra2 = receiptParts.Length > 2 ? receiptParts[2] : "";
                             }
-                            else
-                            {
-                                MSG = PaymentTransaction.AddTransactionDetails(ADDINFO2, DEPOSITERID, DEPOSITERNAME, AMOUNT, ADDINFO1, STATUS, PAYMENTSTATUSMESSAGE, REF_NO, PMODE, "", TXN_DATE, TXN_AMOUNT, CHALLAN_URL, GRN, CIN, DEPTID, RECIEPTHEADCODE, DEPTTRANID, PANNO, ADDINFO3, TREASCODE, IFMSOFFICECODE, ADDINFO5, "", "");
-                            }
-                            
-                            if (MSG != null && MSG.Contains(".aspx"))
-                            {
-                                if (ADDINFO1 == "STA COUNTER SIGNATURE TAX PAY")
-                                {
-                                    aa = ADDINFO3.Split('_');
-                                    string targetUrl = MSG.Split('~')[0];
-                                    string tblType = MSG.Split('~').Length > 1 ? MSG.Split('~')[1] : (aa.Length > 2 ? aa[2] : "");
-                                    ScriptManager.RegisterClientScriptBlock((sender as Control), this.GetType(), Guid.NewGuid().ToString(), "$('#loadingmessage').modal('hide');alert('Payment verified successfully! The tax has been successfully paid');window.location ='" + targetUrl + "?q=" + HttpUtility.UrlEncode(CryptorEngine.Encrypt("APP_ID=" + Convert.ToString(ADDINFO2) + "&GRN=" + Convert.ToString(GRN) + "&TBL=" + tblType + "&TYPE=" + ADDINFO3 + "&APPLICATION_SERVICE=" + Convert.ToString(ADDINFO1), true), Response.ContentEncoding) + "'", true);
-                                }
-                                else
-                                {
-                                    ScriptManager.RegisterClientScriptBlock((sender as Control), this.GetType(), Guid.NewGuid().ToString(), "$('#loadingmessage').modal('hide');alert('Payment verified successfully! The tax has been successfully paid');window.location ='" + MSG + "?q=" + HttpUtility.UrlEncode(CryptorEngine.Encrypt("APP_ID=" + Convert.ToString(ADDINFO2) + "&TYPE=" + Convert.ToString(arr[9]) + "&APPLICATION_SERVICE=" + Convert.ToString(ADDINFO1), true), Response.ContentEncoding) + "'", true);
-                                }
-                            }
-                            else
-                            {
-                                ScriptManager.RegisterClientScriptBlock((sender as Control), this.GetType(), Guid.NewGuid().ToString(), 
-                                    "$('#loadingmessage').modal('hide');alert('Payment has been verified as SUCCESS. Please check your application status.');window.location ='PermitHomepage.aspx';", true);
-                            }
+
+                            SavePendingReceipt(new object[] {
+                                ADDINFO2, DEPOSITERID, DEPOSITERNAME, AMOUNT, ADDINFO1, "SUCCESS",
+                                PAYMENTSTATUSMESSAGE, REF_NO, PMODE, "", TXN_DATE, TXN_AMOUNT,
+                                CHALLAN_URL, GRN, CIN, DEPTID, RECIEPTHEADCODE, DEPTTRANID,
+                                PANNO, receiptType, TREASCODE, IFMSOFFICECODE, ADDINFO5, extra1, extra2
+                            }, Application_number, DEPTTRANID1);
                             return;
                         }
                         else if (STATUS == "FAIL")
@@ -439,6 +426,29 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
             else
             {
                 // ── Original flow for BOOKED/SUCCESS (unchanged logic) ──
+                if (STATUS == "SUCCESS")
+                {
+                    string[] receiptParts = (ADDINFO3 ?? "").Split('_');
+                    string receiptType = ADDINFO3;
+                    string extra1 = "";
+                    string extra2 = "";
+                    if (ADDINFO1 == "STA COUNTER SIGNATURE TAX PAY"
+                        || (ADDINFO3 != null && ADDINFO3.StartsWith("STA-APPLICATION_") && receiptParts.Length >= 3))
+                    {
+                        receiptType = receiptParts[0];
+                        extra1 = receiptParts.Length > 1 ? receiptParts[1] : "";
+                        extra2 = receiptParts.Length > 2 ? receiptParts[2] : "";
+                    }
+
+                    SavePendingReceipt(new object[] {
+                        ADDINFO2, DEPOSITERID, DEPOSITERNAME, AMOUNT, ADDINFO1, "SUCCESS",
+                        PAYMENTSTATUSMESSAGE, REF_NO, PMODE, "", TXN_DATE, TXN_AMOUNT,
+                        CHALLAN_URL, GRN, CIN, DEPTID, RECIEPTHEADCODE, DEPTTRANID,
+                        PANNO, receiptType, TREASCODE, IFMSOFFICECODE, ADDINFO5, extra1, extra2
+                    }, Application_number, DEPTTRANID1);
+                    return;
+                }
+
                 PaymentLogger.DatabaseUpdate(verificationId, Application_number, DEPTTRANID1,
                     "DATABASE_UPDATE_STARTED", "Processing via AddTransactionDetails (tbl_status=" + tbl_status + ")",
                     App_id, tbl_status, STATUS, operation_for);
@@ -506,6 +516,135 @@ public partial class ClientPaymentStatus : System.Web.UI.Page
          
     }
     
+
+    private const string PendingReceiptSessionKey = "ClientPaymentStatus.PendingReceipt";
+    private const string PendingReceiptInProgressSessionKey = "ClientPaymentStatus.PendingReceiptInProgress";
+
+    private void SavePendingReceipt(object[] receiptArguments, string applicationNumber, string deptTranId)
+    {
+        Session.Remove(PendingReceiptSessionKey);
+        Session.Remove(PendingReceiptInProgressSessionKey);
+        Session[PendingReceiptSessionKey] = receiptArguments;
+
+        btnSubmit.Visible = true;
+        PaymentLogger.Info(
+            PaymentLogger.GenerateVerificationId(),
+            applicationNumber,
+            deptTranId,
+            "RECEIPT_READY_FOR_USER",
+            "SBI reconfirmed SUCCESS. Receipt generation is awaiting explicit user submission.");
+        ScriptManager.RegisterStartupScript(
+            this, GetType(), Guid.NewGuid().ToString(),
+            "$('#loadingmessage').modal('hide'); $('#lblMessage').show().text('Payment verified successfully with SBI/JEGRAS. Click Submit to generate your receipt.');",
+            true);
+    }
+
+    protected void btnGenerateReceipt_Click(object sender, EventArgs e)
+    {
+        object[] args = Session[PendingReceiptSessionKey] as object[];
+        if (args == null || args.Length != 25 || Convert.ToString(args[5]) != "SUCCESS")
+        {
+            btnSubmit.Visible = false;
+            ScriptManager.RegisterStartupScript(this, GetType(), Guid.NewGuid().ToString(),
+                "alert('Your verified payment session has expired. Please check payment status again.');", true);
+            return;
+        }
+
+        if (Session[PendingReceiptInProgressSessionKey] != null)
+            return;
+
+        Session[PendingReceiptInProgressSessionKey] = true;
+        try
+        {
+            string addInfo2 = Convert.ToString(args[0]);
+            string depositerId = Convert.ToString(args[1]);
+            string depositerName = Convert.ToString(args[2]);
+            decimal amount = Convert.ToDecimal(args[3]);
+            string addInfo1 = Convert.ToString(args[4]);
+            string status = Convert.ToString(args[5]);
+            string paymentMessage = Convert.ToString(args[6]);
+            string refNo = Convert.ToString(args[7]);
+            string payMode = Convert.ToString(args[8]);
+            string txnDate = Convert.ToString(args[10]);
+            string txnAmount = Convert.ToString(args[11]);
+            string challanUrl = Convert.ToString(args[12]);
+            string grn = Convert.ToString(args[13]);
+            string cin = Convert.ToString(args[14]);
+            string deptId = Convert.ToString(args[15]);
+            string receiptHeadCode = Convert.ToString(args[16]);
+            string deptTranId = Convert.ToString(args[17]);
+            string panNo = Convert.ToString(args[18]);
+            string trType = Convert.ToString(args[19]);
+            string treasuryCode = Convert.ToString(args[20]);
+            string ifmsOfficeCode = Convert.ToString(args[21]);
+            string addInfo5 = Convert.ToString(args[22]);
+            string extra1 = Convert.ToString(args[23]);
+            string extra2 = Convert.ToString(args[24]);
+
+            string receiptResult = PaymentTransaction.AddTransactionDetails(
+                addInfo2, depositerId, depositerName, amount, addInfo1, status,
+                paymentMessage, refNo, payMode, "", txnDate, txnAmount,
+                challanUrl, grn, cin, deptId, receiptHeadCode, deptTranId,
+                panNo, trType, treasuryCode, ifmsOfficeCode, addInfo5, extra1, extra2);
+
+            PaymentLogger.DatabaseUpdate(
+                PaymentLogger.GenerateVerificationId(), depositerId, deptTranId,
+                "RECEIPT_GENERATION_COMPLETED",
+                "AddTransactionDetails returned: " + (receiptResult ?? "null"),
+                addInfo2, "SUCCESS", "SUCCESS", addInfo1);
+
+            if (receiptResult == "Error" || receiptResult == "FAIL" || receiptResult == "BOOKED"
+                || string.IsNullOrWhiteSpace(receiptResult) || !receiptResult.Contains(".aspx"))
+            {
+                Session.Remove(PendingReceiptInProgressSessionKey);
+                btnSubmit.Visible = true;
+                ScriptManager.RegisterStartupScript(this, GetType(), Guid.NewGuid().ToString(),
+                    "alert('Receipt could not be generated. Please try again or contact support.');", true);
+                return;
+            }
+
+            Session.Remove(PendingReceiptSessionKey);
+            Session.Remove(PendingReceiptInProgressSessionKey);
+
+            string redirectUrl;
+            if (addInfo1 == "STA COUNTER SIGNATURE TAX PAY")
+            {
+                string targetUrl = receiptResult.Split('~')[0];
+                string tblType = receiptResult.Split('~').Length > 1
+                    ? receiptResult.Split('~')[1]
+                    : (extra2 ?? "");
+                string encryptedQuery = HttpUtility.UrlEncode(
+                    CryptorEngine.Encrypt(
+                        "APP_ID=" + addInfo2 + "&GRN=" + grn + "&TBL=" + tblType
+                        + "&TYPE=" + trType + "&APPLICATION_SERVICE=" + addInfo1,
+                        true), Response.ContentEncoding);
+                redirectUrl = targetUrl + "?q=" + encryptedQuery;
+            }
+            else
+            {
+                string encryptedQuery = HttpUtility.UrlEncode(
+                    CryptorEngine.Encrypt(
+                        "APP_ID=" + addInfo2 + "&TYPE=" + trType
+                        + "&APPLICATION_SERVICE=" + addInfo1,
+                        true), Response.ContentEncoding);
+                redirectUrl = receiptResult + "?q=" + encryptedQuery;
+            }
+
+            Response.Redirect(redirectUrl, false);
+            Context.ApplicationInstance.CompleteRequest();
+        }
+        catch (Exception ex)
+        {
+            Session.Remove(PendingReceiptInProgressSessionKey);
+            PaymentLogger.Error(
+                PaymentLogger.GenerateVerificationId(), "", "",
+                "RECEIPT_GENERATION_FAILED", "Receipt generation failed: " + ex);
+            btnSubmit.Visible = true;
+            ScriptManager.RegisterStartupScript(this, GetType(), Guid.NewGuid().ToString(),
+                "alert('Receipt generation failed. Please try again later.');", true);
+        }
+    }
+
     /// <summary>
     /// Log verification result to PAYMENT_VERIFICATION_LOG table.
     /// Never throws — failures are silently ignored.
