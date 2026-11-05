@@ -38,6 +38,7 @@ public partial class MISC_PAYMENT_RESPONSE : Page
                 gatewayAppId != Convert.ToInt32(stored["APP_ID"]) ||
                 !string.Equals(data[5], Convert.ToString(stored["APPLICATION_NUMBER"]), StringComparison.OrdinalIgnoreCase) ||
                 !string.Equals(data[7], Convert.ToString(stored["OPERATION_FOR"]), StringComparison.Ordinal) ||
+                !string.Equals(data[9], Convert.ToString(stored["TR_TYPE"]), StringComparison.Ordinal) ||
                 !string.Equals(data[9], "MISC-" + Convert.ToString(stored["AUTHORITY_CODE"]) + "-" + Convert.ToString(stored["REASON_ID"]), StringComparison.Ordinal) ||
                 !string.Equals(data[0], Convert.ToString(stored["DEPTID"]), StringComparison.Ordinal) ||
                 !string.Equals(data[1], Convert.ToString(stored["RECEIPTHEADCODE"]), StringComparison.Ordinal) ||
