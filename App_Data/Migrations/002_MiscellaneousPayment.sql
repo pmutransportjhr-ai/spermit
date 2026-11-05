@@ -1,3 +1,6 @@
+USE JHT_LIVE;
+GO
+
 /*
     Spermit - Miscellaneous JEGRAS Payment
     Independent schema and procedures. Existing payment objects are not altered.
