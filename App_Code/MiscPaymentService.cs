@@ -88,13 +88,14 @@ public static class MiscPaymentService
 
     public static void SaveGatewayResponse(string deptTranId, string status, string message, string reference,
         string payMode, DateTime? txnDate, decimal? txnAmount, string challanUrl, string grn, string cin,
-        string deptId, string receiptHead, string panNo, string treasury, string office, string addInfo5)
+        string deptId, string receiptHead, string panNo, string treasury, string office, string addInfo5,
+        string mode = "UPDATE_RESPONSE")
     {
         using (SqlConnection con = new SqlConnection(ConnectionString))
         using (SqlCommand cmd = new SqlCommand("SP_MISC_PAYMENT_TRANSACTION_AED", con))
         {
             cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@MODE", SqlDbType.VarChar, 30).Value = "UPDATE_RESPONSE";
+            cmd.Parameters.Add("@MODE", SqlDbType.VarChar, 30).Value = mode;
             cmd.Parameters.Add("@DEPTTRANID", SqlDbType.VarChar, 40).Value = deptTranId;
             cmd.Parameters.Add("@TRN_STATUS", SqlDbType.VarChar, 20).Value = status;
             cmd.Parameters.Add("@TRN_MESSAGE", SqlDbType.NVarChar, 1000).Value = (object)message ?? DBNull.Value;
