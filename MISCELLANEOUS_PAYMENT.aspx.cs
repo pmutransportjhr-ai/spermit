@@ -15,8 +15,9 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
     {
         int reasonId;
         string postedReason = Request.Form[ddlReason.UniqueID];
+        string postedAuthority = Request.Form[ddlAuthority.UniqueID];
         if (int.TryParse(postedReason, out reasonId) && reasonId > 0)
-            BindDynamicFields(reasonId);
+            BindDynamicFields(reasonId, postedAuthority);
     }
 
     protected void Page_Load(object sender, EventArgs e)
@@ -83,10 +84,11 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         txtAmount.Value = fixedAmount ? Convert.ToDecimal(rows[0]["FIXED_AMOUNT"]).ToString("0.00", CultureInfo.InvariantCulture) : "";
     }
 
-    private void BindDynamicFields(int reasonId)
+    private void BindDynamicFields(int reasonId, string authorityCode = null)
     {
         phDynamicFields.Controls.Clear();
-        DataTable fields = MiscPaymentService.ExecuteReason("LIST_FIELDS", ddlAuthority.SelectedValue, reasonId);
+        if (string.IsNullOrEmpty(authorityCode)) authorityCode = ddlAuthority.SelectedValue;
+        DataTable fields = MiscPaymentService.ExecuteReason("LIST_FIELDS", authorityCode, reasonId);
         foreach (DataRow row in fields.Rows)
         {
             int fieldId = Convert.ToInt32(row["FIELD_ID"]);
@@ -155,6 +157,7 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
     protected void btnSearch_Click(object sender, EventArgs e)
     {
         string appNumber = txtApplicationNumber.Value.Trim();
+        if (string.IsNullOrWhiteSpace(ddlAuthority.SelectedValue)) { ShowMessage("Select STA or RTA first."); return; }
         if (string.IsNullOrWhiteSpace(appNumber)) { ShowMessage("Enter an application number."); return; }
         using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
         using (SqlCommand cmd = new SqlCommand("SP_VIEW_APPLICATION_STATUS", con))
@@ -234,17 +237,15 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                                   tableType.StartsWith("RTA", StringComparison.OrdinalIgnoreCase) ? "RTA" : "";
             if (string.IsNullOrEmpty(appAuthority))
             { ShowMessage("Could not determine STA/RTA authority for this application. Contact support."); return; }
+            if (!string.Equals(appAuthority, ddlAuthority.SelectedValue, StringComparison.OrdinalIgnoreCase))
+            { ShowMessage("The selected authority does not match this application. Please select " + appAuthority + "."); return; }
 
             Session["MISC_APP_VERIFIED"] = true;
             Session["MISC_APP_ID"] = Convert.ToInt32(app["APP_ID"]);
             Session["MISC_APP_NAME"] = Convert.ToString(app["OWNER_NAME"]);
             Session["MISC_APP_NUMBER"] = Convert.ToString(app["APPLICATION_NUMBER"]);
             Session["MISC_APP_AUTHORITY"] = appAuthority;
-            if (ddlAuthority.Items.FindByValue(appAuthority) != null)
-            {
-                ddlAuthority.SelectedValue = appAuthority;
-                BindReasons();
-            }
+            BindReasons();
             DivMiscPayment.Visible = true;
             DivMobileValidate.Visible = true;
             DivOTPMatch.Visible = false;
