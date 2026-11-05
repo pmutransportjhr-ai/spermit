@@ -214,7 +214,7 @@ public partial class MISC_PAYMENT_STATUS : Page
         if (data.Length < 22 || !string.Equals(data[3], deptTranId, StringComparison.Ordinal) ||
             !int.TryParse(data[8], out verifiedAppId) || verifiedAppId != Convert.ToInt32(stored["APP_ID"]) ||
             !string.Equals(data[5], Convert.ToString(stored["APPLICATION_NUMBER"]), StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(data[2], Convert.ToString(stored["APPLICANT_NAME"]), StringComparison.Ordinal) ||
+            !string.Equals(data[2], Convert.ToString(stored["APPLICANT_NAME"]).Replace("&", "and"), StringComparison.Ordinal) ||
             !string.Equals(data[7], Convert.ToString(stored["OPERATION_FOR"]), StringComparison.Ordinal) ||
             !string.Equals(data[9], Convert.ToString(stored["TR_TYPE"]), StringComparison.Ordinal) ||
                 !string.Equals(data[9], "MISC-" + Convert.ToString(stored["AUTHORITY_CODE"]) + "-" + Convert.ToString(stored["REASON_ID"]), StringComparison.Ordinal) ||
