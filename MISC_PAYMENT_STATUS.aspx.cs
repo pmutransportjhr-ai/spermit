@@ -27,6 +27,14 @@ public partial class MISC_PAYMENT_STATUS : Page
     protected void btnSearch_Click(object sender, EventArgs e)
     {
         Session.Remove("MISC_STATUS_VERIFIED_APP");
+        txtApplicationNumber.ReadOnly = false;
+        txtMobileNumber.Disabled = false;
+        txtMobileNumber.Value = "";
+        txtOTP.Value = "";
+        btnOTP.Enabled = true;
+        DivMobileValidate.Visible = false;
+        DivOTPMatch.Visible = false;
+        gvTransactions.Visible = false;
         string applicationNumber = txtApplicationNumber.Text.Trim();
         if (string.IsNullOrWhiteSpace(applicationNumber))
         {
@@ -53,6 +61,7 @@ public partial class MISC_PAYMENT_STATUS : Page
             DivMobileValidate.Visible = true;
             DivOTPMatch.Visible = false;
             gvTransactions.Visible = false;
+            txtApplicationNumber.ReadOnly = true;
             lblMessage.Visible = false;
         }
     }
