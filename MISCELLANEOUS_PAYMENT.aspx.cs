@@ -157,6 +157,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
 
     protected void btnClear_Click(object sender, EventArgs e)
     {
+        Session.Remove("MISC_TABLE_NAME");
+        Session.Remove("MISC_PERMIT_NO");
         Session.Remove("MISC_APP_VERIFIED");
         Session.Remove("MISC_APP_ID");
         Session.Remove("MISC_APP_NAME");
@@ -186,6 +188,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             }
             HFTableName.Value = Convert.ToString(dt.Rows[0]["TABLE_NAME"]);
             HFPermitNo.Value = dt.Columns.Contains("PERMIT_NUMBER") ? Convert.ToString(dt.Rows[0]["PERMIT_NUMBER"]) : "";
+            Session["MISC_TABLE_NAME"] = HFTableName.Value;
+            Session["MISC_PERMIT_NO"] = HFPermitNo.Value;
             DivMobileValidate.Visible = true;
             txtApplicationNumber.Disabled = true;
             btnSearch.Enabled = false;
@@ -202,8 +206,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         {
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add("@APPLICATION_NUMBER", SqlDbType.VarChar, 120).Value = txtApplicationNumber.Value.Trim();
-            cmd.Parameters.Add("@PERMIT_NUMBER", SqlDbType.VarChar, 100).Value = HFPermitNo.Value;
-            cmd.Parameters.Add("@TABLE_NAME", SqlDbType.VarChar, 128).Value = HFTableName.Value;
+            cmd.Parameters.Add("@PERMIT_NUMBER", SqlDbType.VarChar, 100).Value = Convert.ToString(Session["MISC_PERMIT_NO"]);
+            cmd.Parameters.Add("@TABLE_NAME", SqlDbType.VarChar, 128).Value = Convert.ToString(Session["MISC_TABLE_NAME"]);
             cmd.Parameters.Add("@MOBILE_NUMBER", SqlDbType.VarChar, 10).Value = mobile;
             cmd.Parameters.Add("@MODE", SqlDbType.VarChar, 40).Value = "VERIFY_MOBILE_NUMBER";
             con.Open();
@@ -228,8 +232,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         {
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add("@APPLICATION_NUMBER", SqlDbType.VarChar, 120).Value = txtApplicationNumber.Value.Trim();
-            cmd.Parameters.Add("@TABLE_NAME", SqlDbType.VarChar, 128).Value = HFTableName.Value;
-            cmd.Parameters.Add("@PERMIT_NUMBER", SqlDbType.VarChar, 100).Value = HFPermitNo.Value;
+            cmd.Parameters.Add("@TABLE_NAME", SqlDbType.VarChar, 128).Value = Convert.ToString(Session["MISC_TABLE_NAME"]);
+            cmd.Parameters.Add("@PERMIT_NUMBER", SqlDbType.VarChar, 100).Value = Convert.ToString(Session["MISC_PERMIT_NO"]);
             cmd.Parameters.Add("@OTP", SqlDbType.VarChar, 10).Value = txtOTP.Value.Trim();
             cmd.Parameters.Add("@MODE", SqlDbType.VarChar, 40).Value = "VERIFY_OTP";
             DataTable dt = new DataTable();
