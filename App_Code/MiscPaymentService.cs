@@ -28,6 +28,19 @@ public static class MiscPaymentService
         }
     }
 
+    public static void MarkRequested(string deptTranId)
+    {
+        using (SqlConnection con = new SqlConnection(ConnectionString))
+        using (SqlCommand cmd = new SqlCommand("SP_MISC_PAYMENT_TRANSACTION_AED", con))
+        {
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add("@MODE", SqlDbType.VarChar, 30).Value = "MARK_REQUESTED";
+            cmd.Parameters.Add("@DEPTTRANID", SqlDbType.VarChar, 40).Value = deptTranId;
+            con.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
+
     public static DataTable GetTransaction(string deptTranId)
     {
         using (SqlConnection con = new SqlConnection(ConnectionString))
