@@ -130,7 +130,7 @@
 
                                         <div class="col-md-4">
                                             <label>Reason</label>
-                                            <asp:DropDownList ID="ddlReason" runat="server" CssClass="form-control">
+                                            <asp:DropDownList ID="ddlReason" runat="server" CssClass="form-control misc-reason">
                                                 <asp:ListItem Value="">--Select--</asp:ListItem>
                                                 <asp:ListItem>Late Fee</asp:ListItem>
                                                 <asp:ListItem>Penalty</asp:ListItem>
@@ -177,12 +177,14 @@
     <script src="assets/js/ViewApplicationStatus.js" type="text/javascript"></script>
 
     <script>
-    $('#<%=ddlReason.ClientID%>').change(function () {
-        if ($(this).val() === "OTHER") {
-            $('#divOtherReason').show();
-        } else {
-            $('#divOtherReason').hide();
-        }
-    });
+        // Use a CSS class selector instead of an inline ASP.NET ClientID expression.
+        // This avoids generating inline-expression code in the page parser.
+        $(document).on('change', '.misc-reason', function () {
+            if ($(this).val() === 'OTHER') {
+                $('#divOtherReason').show();
+            } else {
+                $('#divOtherReason').hide();
+            }
+        });
     </script>
 </asp:Content>
