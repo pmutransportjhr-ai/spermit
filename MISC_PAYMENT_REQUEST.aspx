@@ -7,10 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
-    <% if (IsValidRequest) { %>
+    <asp:Panel ID="pnlValidRequest" runat="server" Visible="false">
         <p>Redirecting securely to Jharkhand eGRAS. Please do not refresh this page.</p>
         <form id="gatewayForm" method="post" action="https://finance.jharkhand.gov.in/jegras/payment.aspx">
-            <input type="hidden" name="requestparam" value="<%= Server.HtmlAttributeEncode(RequestPayload) %>" />
+            <input type="hidden" id="requestPayload" runat="server" name="requestparam" />
             <noscript><button type="submit">Continue to JEGRAS</button></noscript>
         </form>
         <script type="text/javascript">
@@ -18,10 +18,11 @@
                 document.getElementById('gatewayForm').submit();
             }, 100);
         </script>
-    <% } else { %>
+    </asp:Panel>
+    <asp:Panel ID="pnlInvalidRequest" runat="server" Visible="false">
         <h3>Unable to start payment</h3>
-        <p><%= Server.HtmlEncode(ErrorMessage) %></p>
+        <p><asp:Literal ID="litErrorMessage" runat="server" /></p>
         <a href="MISCELLANEOUS_PAYMENT.aspx">Return to Miscellaneous Payment</a>
-    <% } %>
+    </asp:Panel>
 </body>
 </html>
