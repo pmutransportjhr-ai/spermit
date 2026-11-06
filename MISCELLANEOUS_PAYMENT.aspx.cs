@@ -80,7 +80,13 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         DataRow[] rows = dt.Select("REASON_ID=" + reasonId.ToString(CultureInfo.InvariantCulture));
         if (rows.Length == 0) return;
         bool fixedAmount = Convert.ToString(rows[0]["AMOUNT_MODE"]) == "FIXED";
-        txtAmount.ReadOnly = fixedAmount;
+        // txtAmount is an <input runat="server">, so it is an HtmlInputGenericControl.
+        // Set the HTML readonly attribute instead of using the WebForms TextBox.ReadOnly property.
+        if (fixedAmount)
+            txtAmount.Attributes["readonly"] = "readonly";
+        else
+            txtAmount.Attributes.Remove("readonly");
+
         txtAmount.Value = fixedAmount ? Convert.ToDecimal(rows[0]["FIXED_AMOUNT"]).ToString("0.00", CultureInfo.InvariantCulture) : "";
     }
 
