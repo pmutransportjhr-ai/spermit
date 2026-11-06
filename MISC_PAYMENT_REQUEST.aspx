@@ -10,7 +10,7 @@
     <asp:Panel ID="pnlValidRequest" runat="server" Visible="false">
         <p>Redirecting securely to Jharkhand eGRAS. Please do not refresh this page.</p>
         <form id="gatewayForm" method="post" action="https://finance.jharkhand.gov.in/jegras/payment.aspx">
-            <input type="hidden" id="requestPayload" runat="server" name="requestparam" />
+            <asp:Literal ID="litRequestInput" runat="server" />
             <noscript><button type="submit">Continue to JEGRAS</button></noscript>
         </form>
         <script type="text/javascript">
