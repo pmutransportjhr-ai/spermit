@@ -53,6 +53,9 @@ public partial class MISC_PAYMENT_REQUEST : Page
             if (!valid) { Reject("Payment request does not match the stored transaction."); return; }
             MiscPaymentService.MarkRequested(deptTranId);
             RequestPayload = encrypted;
+            requestPayload.Value = encrypted;
+            pnlValidRequest.Visible = true;
+            pnlInvalidRequest.Visible = false;
             IsValidRequest = true;
         }
         catch
@@ -65,5 +68,8 @@ public partial class MISC_PAYMENT_REQUEST : Page
     {
         IsValidRequest = false;
         ErrorMessage = message;
+        pnlValidRequest.Visible = false;
+        pnlInvalidRequest.Visible = true;
+        litErrorMessage.Text = HttpUtility.HtmlEncode(message);
     }
 }
