@@ -53,7 +53,7 @@ public partial class MISC_PAYMENT_REQUEST : Page
             if (!valid) { Reject("Payment request does not match the stored transaction."); return; }
             MiscPaymentService.MarkRequested(deptTranId);
             RequestPayload = encrypted;
-            requestPayload.Value = encrypted;
+            litRequestInput.Text = "<input type=\"hidden\" name=\"requestparam\" value=\"" + HttpUtility.HtmlAttributeEncode(encrypted) + "\" />";
             pnlValidRequest.Visible = true;
             pnlInvalidRequest.Visible = false;
             IsValidRequest = true;
