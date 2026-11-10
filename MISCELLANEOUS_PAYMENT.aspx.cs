@@ -25,8 +25,6 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         txtApplicationNumber.MaxLength = 120;
         txtMobileNumber.MaxLength = 10;
         txtOTP.MaxLength = 6;
-        txtAmount.Attributes["min"] = "0.01";
-        txtAmount.Attributes["step"] = "0.01";
         if (!IsPostBack)
         {
             DivMobileValidate.Visible = false;
@@ -80,14 +78,28 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         DataRow[] rows = dt.Select("REASON_ID=" + reasonId.ToString(CultureInfo.InvariantCulture));
         if (rows.Length == 0) return;
         bool fixedAmount = Convert.ToString(rows[0]["AMOUNT_MODE"]) == "FIXED";
-        // txtAmount is an <input runat="server">, so it is an HtmlInputGenericControl.
-        // Set the HTML readonly attribute instead of using the WebForms TextBox.ReadOnly property.
-        if (fixedAmount)
-            txtAmount.Attributes["readonly"] = "readonly";
-        else
-            txtAmount.Attributes.Remove("readonly");
-
-        txtAmount.Value = fixedAmount ? Convert.ToDecimal(rows[0]["FIXED_AMOUNT"]).ToString("0.00", CultureInfo.InvariantCulture) : "";
+        DataTable fields = MiscPaymentService.ExecuteReason("LIST_FIELDS", ddlAuthority.SelectedValue, reasonId);
+        foreach (DataRow field in fields.Rows)
+        {
+            string key = Convert.ToString(field["FIELD_KEY"]);
+            if (!IsAmountField(key)) continue;
+            int fieldId = Convert.ToInt32(field["FIELD_ID"]);
+            TextBox amountInput = phDynamicFields.FindControl("field_" + fieldId) as TextBox;
+            if (amountInput == null) continue;
+            amountInput.Attributes["min"] = "0.01";
+            amountInput.Attributes["step"] = "0.01";
+            if (fixedAmount)
+            {
+                amountInput.ReadOnly = true;
+                amountInput.Text = Convert.ToDecimal(rows[0]["FIXED_AMOUNT"]).ToString("0.00", CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                amountInput.ReadOnly = false;
+                amountInput.Text = "";
+            }
+            break;
+        }
     }
 
     private void BindDynamicFields(int reasonId, string authorityCode = null)
@@ -124,10 +136,77 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 if (type == "DATE") input.TextMode = TextBoxMode.Date;
                 else if (type == "NUMBER") input.TextMode = TextBoxMode.Number;
                 else if (type == "TEXTAREA") input.TextMode = TextBoxMode.MultiLine;
+                string autoFillValue = GetAutoFillValue(Convert.ToString(row["FIELD_KEY"]));
+                if (!string.IsNullOrWhiteSpace(autoFillValue)) input.Text = autoFillValue;
+                if (IsAmountField(Convert.ToString(row["FIELD_KEY"])))
+                {
+                    input.Attributes["min"] = "0.01";
+                    input.Attributes["step"] = "0.01";
+                }
                 phDynamicFields.Controls.Add(input);
             }
             phDynamicFields.Controls.Add(new LiteralControl("</div>"));
         }
+    }
+
+    private bool IsAmountField(string fieldKey)
+    {
+        return fieldKey.Equals("AMOUNT_OF_TAX", StringComparison.OrdinalIgnoreCase) ||
+               fieldKey.Equals("AMOUNT_OF_FEE", StringComparison.OrdinalIgnoreCase) ||
+               fieldKey.Equals("OBJECTION_FEE", StringComparison.OrdinalIgnoreCase) ||
+               fieldKey.Equals("FEE", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private decimal GetPaymentAmount(int reasonId)
+    {
+        DataTable fields = MiscPaymentService.ExecuteReason("LIST_FIELDS", ddlAuthority.SelectedValue, reasonId);
+        foreach (DataRow row in fields.Rows)
+        {
+            if (!IsAmountField(Convert.ToString(row["FIELD_KEY"]))) continue;
+            int fieldId = Convert.ToInt32(row["FIELD_ID"]);
+            TextBox input = phDynamicFields.FindControl("field_" + fieldId) as TextBox;
+            decimal amount;
+            if (input == null || !decimal.TryParse(input.Text.Trim(), NumberStyles.Number,
+                CultureInfo.InvariantCulture, out amount) || amount <= 0)
+                throw new InvalidOperationException("Enter a valid " + Convert.ToString(row["FIELD_LABEL"]) + " greater than zero.");
+            if (decimal.Round(amount, 2) != amount)
+                throw new InvalidOperationException("Payment amount can have a maximum of two decimal places.");
+            return amount;
+        }
+        throw new InvalidOperationException("The selected payment form has no configured amount field. Please contact support.");
+    }
+
+    private string GetAutoFillValue(string fieldKey)
+    {
+        Dictionary<string, string> values = Session["MISC_APP_AUTOFILL"] as Dictionary<string, string>;
+        string mobile = Convert.ToString(Session["MISC_APP_MOBILE"]);
+        if (fieldKey.Equals("MOBILE_NUMBER", StringComparison.OrdinalIgnoreCase))
+            return mobile;
+
+        string[] candidates = null;
+        if (fieldKey.Equals("APPLICANT_NAME", StringComparison.OrdinalIgnoreCase) ||
+            fieldKey.Equals("OBJECTOR_NAME", StringComparison.OrdinalIgnoreCase))
+            candidates = new string[] { "OWNER_NAME", "APPLICANT_NAME", "NAME" };
+        else if (fieldKey.Equals("APPLICANT_ADDRESS", StringComparison.OrdinalIgnoreCase) ||
+                 fieldKey.Equals("ADDRESS", StringComparison.OrdinalIgnoreCase))
+            candidates = new string[] { "OWNER_ADDRESS", "APPLICANT_ADDRESS", "ADDRESS", "PERMANENT_ADDRESS", "CORRESPONDENCE_ADDRESS" };
+        else if (fieldKey.Equals("VEHICLE_NUMBER", StringComparison.OrdinalIgnoreCase) ||
+                 fieldKey.Equals("OBJECTOR_VEHICLE_NUMBER", StringComparison.OrdinalIgnoreCase))
+            candidates = new string[] { "REGISTRATION_NUMBER", "VEHICLE_NUMBER", "VEHICLE_NO" };
+        else if (fieldKey.Equals("PERMIT_NUMBER", StringComparison.OrdinalIgnoreCase) ||
+                 fieldKey.Equals("OBJECTOR_PERMIT_NUMBER", StringComparison.OrdinalIgnoreCase))
+            candidates = new string[] { "PERMIT_NUMBER" };
+        else if (fieldKey.Equals("EMAIL_ID", StringComparison.OrdinalIgnoreCase))
+            candidates = new string[] { "EMAIL_ID", "EMAIL", "EMAIL_ADDRESS" };
+
+        if (values == null || candidates == null) return "";
+        foreach (string candidate in candidates)
+        {
+            string value;
+            if (values.TryGetValue(candidate, out value) && !string.IsNullOrWhiteSpace(value))
+                return value.Trim();
+        }
+        return "";
     }
 
     private string CollectDynamicFields(int reasonId)
@@ -170,6 +249,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         Session.Remove("MISC_APP_NAME");
         Session.Remove("MISC_APP_NUMBER");
         Session.Remove("MISC_APP_AUTHORITY");
+        Session.Remove("MISC_APP_MOBILE");
+        Session.Remove("MISC_APP_AUTOFILL");
         Response.Redirect("MISCELLANEOUS_PAYMENT.aspx");
     }
 
@@ -266,6 +347,13 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             Session["MISC_APP_NAME"] = Convert.ToString(app["OWNER_NAME"]);
             Session["MISC_APP_NUMBER"] = Convert.ToString(app["APPLICATION_NUMBER"]);
             Session["MISC_APP_AUTHORITY"] = appAuthority;
+            Session["MISC_APP_MOBILE"] = txtMobileNumber.Value.Trim();
+
+            // Keep only values returned by the OTP-verified application record for form prefilling.
+            Dictionary<string, string> verifiedValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DataColumn column in dt.Columns)
+                verifiedValues[column.ColumnName] = Convert.ToString(app[column]);
+            Session["MISC_APP_AUTOFILL"] = verifiedValues;
             BindReasons();
             DivMiscPayment.Visible = true;
             DivMobileValidate.Visible = true;
@@ -292,8 +380,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             DataRow[] selected = reasons.Select("REASON_ID=" + reasonId.ToString(CultureInfo.InvariantCulture));
             if (selected.Length == 0) throw new InvalidOperationException("Invalid or inactive payment reason.");
 
-            decimal amount;
-            if (!decimal.TryParse(txtAmount.Value, NumberStyles.Number, CultureInfo.InvariantCulture, out amount) || amount <= 0)
+            decimal amount = GetPaymentAmount(reasonId);
+            if (amount <= 0)
                 throw new InvalidOperationException("Enter a valid payment amount greater than zero.");
             if (decimal.Round(amount, 2) != amount)
                 throw new InvalidOperationException("Payment amount can have a maximum of two decimal places.");
