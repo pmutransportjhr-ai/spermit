@@ -120,6 +120,14 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 DropDownList list = new DropDownList();
                 list.ID = "field_" + fieldId;
                 list.CssClass = "form-control";
+                // Parent dropdowns post back so dependent options can be rebuilt from the selected parent.
+                foreach (DataRow dependentField in fields.Rows)
+                {
+                    string dependentKey = Convert.ToString(dependentField["FIELD_KEY"]);
+                    if (dependentKey.Equals("TYPE_OF_FEE", StringComparison.OrdinalIgnoreCase) &&
+                        Convert.ToString(row["FIELD_KEY"]).Equals("FEE_CATEGORY", StringComparison.OrdinalIgnoreCase))
+                        list.AutoPostBack = true;
+                }
                 list.Items.Add(new ListItem("-- Select --", ""));
 
                 DataTable optionRows = GetFieldOptions(reasonId, Convert.ToString(row["FIELD_KEY"]));
