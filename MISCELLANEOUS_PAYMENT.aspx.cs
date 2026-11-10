@@ -121,9 +121,41 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 list.ID = "field_" + fieldId;
                 list.CssClass = "form-control";
                 list.Items.Add(new ListItem("-- Select --", ""));
-                string options = Convert.ToString(row["FIELD_OPTIONS"]);
-                foreach (string option in options.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
-                    list.Items.Add(new ListItem(option.Trim(), option.Trim()));
+
+                DataTable optionRows = GetFieldOptions(reasonId, Convert.ToString(row["FIELD_KEY"]));
+                if (optionRows.Rows.Count > 0)
+                {
+                    string parentFieldKey = Convert.ToString(optionRows.Rows[0]["PARENT_FIELD_KEY"]);
+                    string parentOptionCode = "";
+                    if (!string.IsNullOrWhiteSpace(parentFieldKey))
+                    {
+                        DataRow[] parentRows = fields.Select("FIELD_KEY='" + parentFieldKey.Replace("'", "''") + "'");
+                        if (parentRows.Length > 0)
+                        {
+                            string parentControlId = "field_" + Convert.ToString(parentRows[0]["FIELD_ID"]);
+                            DropDownList parentList = phDynamicFields.FindControl(parentControlId) as DropDownList;
+                            parentOptionCode = Request.Form[parentList != null ? parentList.UniqueID : parentControlId];
+                            if (string.IsNullOrWhiteSpace(parentOptionCode) && parentList != null)
+                                parentOptionCode = parentList.SelectedValue;
+                        }
+                    }
+
+                    foreach (DataRow option in optionRows.Rows)
+                    {
+                        string requiredParent = Convert.ToString(option["PARENT_OPTION_CODE"]);
+                        if (!string.IsNullOrWhiteSpace(requiredParent) &&
+                            !string.Equals(requiredParent, parentOptionCode, StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        list.Items.Add(new ListItem(Convert.ToString(option["OPTION_LABEL"]),
+                            Convert.ToString(option["OPTION_CODE"])));
+                    }
+                }
+                else
+                {
+                    string options = Convert.ToString(row["FIELD_OPTIONS"]);
+                    foreach (string option in options.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+                        list.Items.Add(new ListItem(option.Trim(), option.Trim()));
+                }
                 phDynamicFields.Controls.Add(list);
             }
             else
@@ -147,6 +179,23 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             }
             phDynamicFields.Controls.Add(new LiteralControl("</div>"));
         }
+    }
+
+    private DataTable GetFieldOptions(int reasonId, string fieldKey)
+    {
+        DataTable dt = new DataTable();
+        using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
+        using (SqlCommand cmd = new SqlCommand(@"SELECT OPTION_CODE,OPTION_LABEL,PARENT_FIELD_KEY,PARENT_OPTION_CODE
+            FROM dbo.MISC_PAYMENT_REASON_OPTION_MASTER
+            WHERE REASON_ID=@REASON_ID AND FIELD_KEY=@FIELD_KEY AND IS_ACTIVE=1
+            ORDER BY DISPLAY_ORDER,OPTION_LABEL", con))
+        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+        {
+            cmd.Parameters.Add("@REASON_ID", SqlDbType.Int).Value = reasonId;
+            cmd.Parameters.Add("@FIELD_KEY", SqlDbType.VarChar, 50).Value = fieldKey;
+            da.Fill(dt);
+        }
+        return dt;
     }
 
     private bool IsAmountField(string fieldKey)
