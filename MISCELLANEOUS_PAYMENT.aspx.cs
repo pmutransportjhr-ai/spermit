@@ -136,16 +136,23 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                         {
                             string parentControlId = "field_" + Convert.ToString(parentRows[0]["FIELD_ID"]);
                             DropDownList parentList = phDynamicFields.FindControl(parentControlId) as DropDownList;
-                            parentOptionCode = Request.Form[parentList != null ? parentList.UniqueID : parentControlId];
+                            string parentUniqueId = parentList != null ? parentList.UniqueID : phDynamicFields.UniqueID + "$" + Convert.ToString(parentRows[0]["FIELD_ID"]);
+                            parentOptionCode = Request.Form[parentUniqueId];
                             if (string.IsNullOrWhiteSpace(parentOptionCode) && parentList != null)
                                 parentOptionCode = parentList.SelectedValue;
+
+                            // If Web Forms has not restored the parent value yet, keep the
+                            // configured child options visible instead of rendering an empty list.
+                            if (string.IsNullOrWhiteSpace(parentOptionCode))
+                                parentOptionCode = null;
                         }
                     }
 
                     foreach (DataRow option in optionRows.Rows)
                     {
                         string requiredParent = Convert.ToString(option["PARENT_OPTION_CODE"]);
-                        if (!string.IsNullOrWhiteSpace(requiredParent) &&
+                        if (!string.IsNullOrWhiteSpace(parentOptionCode) &&
+                            !string.IsNullOrWhiteSpace(requiredParent) &&
                             !string.Equals(requiredParent, parentOptionCode, StringComparison.OrdinalIgnoreCase))
                             continue;
                         list.Items.Add(new ListItem(Convert.ToString(option["OPTION_LABEL"]),
