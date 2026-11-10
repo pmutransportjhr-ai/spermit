@@ -72,10 +72,6 @@
                                         <asp:DropDownList ID="ddlReason" runat="server" CssClass="form-control"
                                             AutoPostBack="true" OnSelectedIndexChanged="ddlReason_SelectedIndexChanged" />
                                     </div>
-                                    <div class="col-md-6 form-group">
-                                        <label>Amount (₹)</label>
-                                        <input type="number" runat="server" id="txtAmount" class="form-control" min="0.01" step="0.01" placeholder="Enter amount" />
-                                    </div>
                                 </div>
                                 <div class="row">
                                     <asp:PlaceHolder ID="phDynamicFields" runat="server" />
