@@ -176,6 +176,33 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         throw new InvalidOperationException("The selected payment form has no configured amount field. Please contact support.");
     }
 
+    private void LoadVerifiedApplicationFields(int appId, string tableName, Dictionary<string, string> values)
+    {
+        // TABLE_NAME originates from SP_VIEW_APPLICATION_STATUS, but validate it before
+        // using it as a SQL identifier. APP_ID and the table name are not accepted from the browser.
+        if (string.IsNullOrWhiteSpace(tableName) ||
+            !(tableName.StartsWith("STA_", StringComparison.OrdinalIgnoreCase) ||
+              tableName.StartsWith("RTA_", StringComparison.OrdinalIgnoreCase)))
+            return;
+        foreach (char ch in tableName)
+            if (!(char.IsLetterOrDigit(ch) || ch == '_')) return;
+
+        string sql = "SELECT TOP (1) * FROM dbo.[" + tableName + "] WHERE APP_ID=@APP_ID";
+        using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
+        using (SqlCommand cmd = new SqlCommand(sql, con))
+        {
+            cmd.Parameters.Add("@APP_ID", SqlDbType.Int).Value = appId;
+            con.Open();
+            using (SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                if (!reader.Read()) return;
+                for (int i = 0; i < reader.FieldCount; i++)
+                    if (!reader.IsDBNull(i))
+                        values[reader.GetName(i)] = Convert.ToString(reader.GetValue(i));
+            }
+        }
+    }
+
     private string GetAutoFillValue(string fieldKey)
     {
         Dictionary<string, string> values = Session["MISC_APP_AUTOFILL"] as Dictionary<string, string>;
@@ -353,6 +380,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             Dictionary<string, string> verifiedValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (DataColumn column in dt.Columns)
                 verifiedValues[column.ColumnName] = Convert.ToString(app[column]);
+            LoadVerifiedApplicationFields(Convert.ToInt32(app["APP_ID"]),
+                Convert.ToString(Session["MISC_TABLE_NAME"]), verifiedValues);
             Session["MISC_APP_AUTOFILL"] = verifiedValues;
             BindReasons();
             DivMiscPayment.Visible = true;
