@@ -121,13 +121,7 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 list.ID = "field_" + fieldId;
                 list.CssClass = "form-control";
                 // Parent dropdowns post back so dependent options can be rebuilt from the selected parent.
-                foreach (DataRow dependentField in fields.Rows)
-                {
-                    string dependentKey = Convert.ToString(dependentField["FIELD_KEY"]);
-                    if (dependentKey.Equals("TYPE_OF_FEE", StringComparison.OrdinalIgnoreCase) &&
-                        Convert.ToString(row["FIELD_KEY"]).Equals("FEE_CATEGORY", StringComparison.OrdinalIgnoreCase))
-                        list.AutoPostBack = true;
-                }
+                list.AutoPostBack = HasDependentOptions(reasonId, Convert.ToString(row["FIELD_KEY"]));
                 list.Items.Add(new ListItem("-- Select --", ""));
 
                 DataTable optionRows = GetFieldOptions(reasonId, Convert.ToString(row["FIELD_KEY"]));
@@ -186,6 +180,20 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 phDynamicFields.Controls.Add(input);
             }
             phDynamicFields.Controls.Add(new LiteralControl("</div>"));
+        }
+    }
+
+    private bool HasDependentOptions(int reasonId, string fieldKey)
+    {
+        using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
+        using (SqlCommand cmd = new SqlCommand(@"SELECT COUNT(1)
+            FROM dbo.MISC_PAYMENT_REASON_OPTION_MASTER
+            WHERE REASON_ID=@REASON_ID AND PARENT_FIELD_KEY=@FIELD_KEY AND IS_ACTIVE=1", con))
+        {
+            cmd.Parameters.Add("@REASON_ID", SqlDbType.Int).Value = reasonId;
+            cmd.Parameters.Add("@FIELD_KEY", SqlDbType.VarChar, 50).Value = fieldKey;
+            con.Open();
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
     }
 
