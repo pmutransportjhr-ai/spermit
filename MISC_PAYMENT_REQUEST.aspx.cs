@@ -41,35 +41,56 @@ public partial class MISC_PAYMENT_REQUEST : Page
             if (tx.Rows.Count != 1) { Reject("Payment transaction was not found."); return; }
             DataRow row = tx.Rows[0];
 
-            bool valid =
-     Convert.ToString(row["TRN_STATUS"]) == "INITIATED" &&
-     Convert.ToString(row["APPLICATION_NUMBER"]) == data[5] &&
-     Convert.ToInt32(row["APP_ID"]) == appId &&
-     Convert.ToDecimal(row["AMOUNT"]) == amount &&
+            // Identify the exact failed comparison without logging or exposing
+            // decrypted payload values, applicant details, or the security code.
+            var failedChecks = new System.Collections.Generic.List<string>();
 
-     string.Equals(
-         Convert.ToString(row["OPERATION_FOR"]),
-         data[7],
-         StringComparison.Ordinal) &&
+            if (Convert.ToString(row["TRN_STATUS"]) != "INITIATED")
+                failedChecks.Add("TRN_STATUS");
 
-     string.Equals(
-         data[2],
-         Convert.ToString(row["APPLICANT_NAME"]).Replace("&", "and"),
-         StringComparison.Ordinal) &&
+            if (Convert.ToString(row["APPLICATION_NUMBER"]) != data[5])
+                failedChecks.Add("APPLICATION_NUMBER");
 
-     // ADDINFO3 contains the MISC reason marker, not TR_TYPE.
-     string.Equals(
-         data[9],
-         "MISC-" + Convert.ToString(row["AUTHORITY_CODE"]) + "-" +
-         Convert.ToString(row["REASON_ID"]),
-         StringComparison.Ordinal) &&
+            if (Convert.ToInt32(row["APP_ID"]) != appId)
+                failedChecks.Add("APP_ID");
 
-     string.Equals(Convert.ToString(row["CFG_DEPTID"]), data[0], StringComparison.Ordinal) &&
-     string.Equals(Convert.ToString(row["CFG_RECEIPTHEADCODE"]), data[1], StringComparison.Ordinal) &&
-     string.Equals(Convert.ToString(row["CFG_TREASCODE"]), data[10], StringComparison.Ordinal) &&
-     string.Equals(Convert.ToString(row["CFG_IFMSOFFICECODE"]), data[11], StringComparison.Ordinal);
+            if (Convert.ToDecimal(row["AMOUNT"]) != amount)
+                failedChecks.Add("AMOUNT");
 
-            if (!valid) { Reject("Payment request does not match the stored transaction."); return; }
+            if (!string.Equals(Convert.ToString(row["OPERATION_FOR"]), data[7], StringComparison.Ordinal))
+                failedChecks.Add("OPERATION_FOR");
+
+            if (!string.Equals(
+                data[2],
+                Convert.ToString(row["APPLICANT_NAME"]).Replace("&", "and"),
+                StringComparison.Ordinal))
+                failedChecks.Add("APPLICANT_NAME");
+
+            // ADDINFO3 contains the MISC reason marker, not TR_TYPE.
+            string expectedReason = "MISC-" +
+                Convert.ToString(row["AUTHORITY_CODE"]) + "-" +
+                Convert.ToString(row["REASON_ID"]);
+
+            if (!string.Equals(data[9], expectedReason, StringComparison.Ordinal))
+                failedChecks.Add("ADDINFO3_REASON_MARKER");
+
+            if (!string.Equals(Convert.ToString(row["CFG_DEPTID"]), data[0], StringComparison.Ordinal))
+                failedChecks.Add("DEPTID");
+
+            if (!string.Equals(Convert.ToString(row["CFG_RECEIPTHEADCODE"]), data[1], StringComparison.Ordinal))
+                failedChecks.Add("RECEIPTHEADCODE");
+
+            if (!string.Equals(Convert.ToString(row["CFG_TREASCODE"]), data[10], StringComparison.Ordinal))
+                failedChecks.Add("TREASCODE");
+
+            if (!string.Equals(Convert.ToString(row["CFG_IFMSOFFICECODE"]), data[11], StringComparison.Ordinal))
+                failedChecks.Add("IFMSOFFICECODE");
+
+            if (failedChecks.Count > 0)
+            {
+                Reject("Payment request mismatch: " + string.Join(", ", failedChecks));
+                return;
+            }
             MiscPaymentService.MarkRequested(deptTranId);
 
             // Remove the one-time session fallback after the request has passed
