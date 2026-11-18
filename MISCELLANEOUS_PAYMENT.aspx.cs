@@ -598,8 +598,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                     "Payment details contain an unsupported separator character.");
             }
 
-            // Prepare encrypted JEGRAS request using mapped configuration.
-            // mappedTrType is passed in place of the previous reasonInfo argument.
+            // ADDINFO1 carries the selected OPERATION_FOR.
+            // ADDINFO3 carries the MISC reason marker expected by the request validator.
             string encrypted = PayGetWayDTO.MakeEncryptedData(
                 deptId,
                 receiptHead,
