@@ -45,10 +45,13 @@ public void ProcessRequest (HttpContext context) {
                    string SECURITY_CODE = arr1[12];
 
                    // Miscellaneous payments already have their own transaction record.
-                   // Validate it here, then allow the shared PaymentRequest page to post
-                   // the same encrypted payload to JEGRAS without writing to legacy history.
-                   if (arr1.Length >= 13 && (arr1[9] ?? "").StartsWith("MISC-", StringComparison.Ordinal))
+                   // Identify them by DEPTTRANID, while keeping ADDINFO3 as the configured
+                   // JEGRAS TR_TYPE required by the established gateway payload contract.
+                   DataTable miscTransactions = MiscPaymentService.GetTransaction(DEPTTRANID);
+                   if (miscTransactions.Rows.Count > 0)
                    {
+                       if (miscTransactions.Rows.Count != 1)
+                           throw new InvalidOperationException("Invalid miscellaneous payment transaction.");
                        string configuredSecurityCode = ConfigurationManager.AppSettings["JEGRAS_SECURITY_CODE"];
                        if (string.IsNullOrWhiteSpace(configuredSecurityCode) ||
                            !string.Equals(SECURITY_CODE, configuredSecurityCode, StringComparison.Ordinal))
@@ -61,14 +64,7 @@ public void ProcessRequest (HttpContext context) {
                                System.Globalization.CultureInfo.InvariantCulture, out miscAmount))
                            throw new InvalidOperationException("Invalid miscellaneous payment reference or amount.");
 
-                       DataTable miscTransactions = MiscPaymentService.GetTransaction(DEPTTRANID);
-                       if (miscTransactions.Rows.Count != 1)
-                           throw new InvalidOperationException("Miscellaneous payment transaction was not found.");
-
                        DataRow miscStored = miscTransactions.Rows[0];
-                       string expectedMarker = "MISC-" +
-                           Convert.ToString(miscStored["AUTHORITY_CODE"]) + "-" +
-                           Convert.ToString(miscStored["REASON_ID"]);
 
                        if (!string.Equals(Convert.ToString(miscStored["TRN_STATUS"]), "REQUESTED", StringComparison.Ordinal) ||
                            miscAppId != Convert.ToInt32(miscStored["APP_ID"]) ||
@@ -76,7 +72,7 @@ public void ProcessRequest (HttpContext context) {
                            miscAmount != Convert.ToDecimal(miscStored["AMOUNT"]) ||
                            !string.Equals(ADDINFO1, Convert.ToString(miscStored["OPERATION_FOR"]), StringComparison.Ordinal) ||
                            !string.Equals(DEPOSITERNAME, Convert.ToString(miscStored["APPLICANT_NAME"]).Replace("&", "and"), StringComparison.Ordinal) ||
-                           !string.Equals(arr1[9], expectedMarker, StringComparison.Ordinal) ||
+                           !string.Equals(TR_TYPE, Convert.ToString(miscStored["TR_TYPE"]), StringComparison.Ordinal) ||
                            !string.Equals(DEPTID, Convert.ToString(miscStored["CFG_DEPTID"]), StringComparison.Ordinal) ||
                            !string.Equals(RECIEPTHEADCODE, Convert.ToString(miscStored["CFG_RECEIPTHEADCODE"]), StringComparison.Ordinal) ||
                            !string.Equals(TREASCODE, Convert.ToString(miscStored["CFG_TREASCODE"]), StringComparison.Ordinal) ||
