@@ -28,6 +28,7 @@ public void ProcessRequest (HttpContext context) {
                    String DecryptedVal1 = PayGetWayResponseDTO.MakeDecryptedData(context.Request.QueryString["q"].ToString());
                    String[] arr1;
                    arr1 = DecryptedVal1.Split('|');
+                   if (arr1.Length < 13) throw new InvalidOperationException("Invalid payment request format.");
                                       
                    string DEPTID = arr1[0];
                    string RECIEPTHEADCODE = arr1[1];
@@ -48,6 +49,11 @@ public void ProcessRequest (HttpContext context) {
                    // the same encrypted payload to JEGRAS without writing to legacy history.
                    if (arr1.Length >= 13 && (arr1[9] ?? "").StartsWith("MISC-", StringComparison.Ordinal))
                    {
+                       string configuredSecurityCode = ConfigurationManager.AppSettings["JEGRAS_SECURITY_CODE"];
+                       if (string.IsNullOrWhiteSpace(configuredSecurityCode) ||
+                           !string.Equals(SECURITY_CODE, configuredSecurityCode, StringComparison.Ordinal))
+                           throw new InvalidOperationException("Invalid JEGRAS security configuration.");
+
                        int miscAppId;
                        decimal miscAmount;
                        if (!int.TryParse(ADDINFO2, out miscAppId) ||
