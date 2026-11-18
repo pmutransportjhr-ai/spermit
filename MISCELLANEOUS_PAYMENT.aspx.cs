@@ -569,10 +569,10 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             string deptTranId = DateTime.UtcNow.Ticks.ToString(
                 CultureInfo.InvariantCulture);
 
-            // Keep this as the application-side reference/information value.
-            // The actual JEGRAS TR_TYPE comes from the selected mapping.
-            string reasonInfo = "MISC-" + authority + "-" +
-                reasonId.ToString(CultureInfo.InvariantCulture);
+            // JEGRAS ADDINFO3 (field 9) must carry the configured payment type,
+            // matching the existing payment flow. Miscellaneous identity is
+            // resolved internally by DEPTTRANID, not sent as a custom gateway type.
+            string gatewayPaymentType = mappedTrType;
 
             string applicantName =
                 Convert.ToString(Session["MISC_APP_NAME"]);
@@ -598,8 +598,7 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                     "Payment details contain an unsupported separator character.");
             }
 
-            // ADDINFO1 carries the selected OPERATION_FOR.
-            // ADDINFO3 carries the MISC reason marker expected by the request validator.
+            // ADDINFO1 carries OPERATION_FOR; ADDINFO3 carries the configured JEGRAS TR_TYPE.
             string encrypted = PayGetWayDTO.MakeEncryptedData(
                 deptId,
                 receiptHead,
@@ -610,7 +609,7 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 "NA",
                 operationFor,
                 applicantId,
-                reasonInfo,
+                gatewayPaymentType,
                 treasury,
                 office,
                 securityCode);
