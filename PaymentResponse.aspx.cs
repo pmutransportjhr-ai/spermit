@@ -42,6 +42,12 @@ public partial class PaymentResponse : System.Web.UI.Page
             String DecryptedVal = PayGetWayResponseDTO.MakeDecryptedData(queryString.ToString());
             String[] arr;
             arr = DecryptedVal.Split('|');
+            if (arr.Length < 22)
+            {
+                ClientScript.RegisterStartupScript(GetType(), Guid.NewGuid().ToString(),
+                    "alert('Invalid payment response format.');window.location='PermitHomePage.aspx';", true);
+                return;
+            }
             DEPTID = arr[0];
             RECIEPTHEADCODE = arr[1];
             DEPOSITERNAME = arr[2];
