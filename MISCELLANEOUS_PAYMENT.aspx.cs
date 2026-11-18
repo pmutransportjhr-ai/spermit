@@ -610,7 +610,7 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 "NA",
                 operationFor,
                 applicantId,
-                mappedTrType,
+                reasonInfo,
                 treasury,
                 office,
                 securityCode);
@@ -637,11 +637,14 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 reasonId,
                 amount,
                 fieldsJson,
-                reasonInfo,
+                mappedTrType,
                 deptId,
                 receiptHead,
                 treasury,
                 office);
+
+            Session["MISC_JEGRAS_REQUEST"] = encrypted;
+            Session["MISC_JEGRAS_DEPTTRANID"] = deptTranId;
 
             Response.Redirect(
                 "MISC_PAYMENT_REQUEST.aspx?q=" +
