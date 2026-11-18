@@ -13,10 +13,15 @@ public partial class MISC_PAYMENT_REQUEST : Page
     protected void Page_Load(object sender, EventArgs e)
     {
         if (IsPostBack) return;
+        // Prefer the query-string request. Fall back to the session value
+        // created by MISCELLANEOUS_PAYMENT.aspx before redirecting to this page.
         string encrypted = Request.QueryString["q"];
         if (string.IsNullOrWhiteSpace(encrypted))
+            encrypted = Convert.ToString(Session["MISC_JEGRAS_REQUEST"]);
+
+        if (string.IsNullOrWhiteSpace(encrypted))
         {
-            Reject("Missing JEGRAS request.");
+            Reject("Missing JEGRAS request. Please return to Miscellaneous Payment and submit again.");
             return;
         }
 
@@ -66,6 +71,18 @@ public partial class MISC_PAYMENT_REQUEST : Page
 
             if (!valid) { Reject("Payment request does not match the stored transaction."); return; }
             MiscPaymentService.MarkRequested(deptTranId);
+
+            // Remove the one-time session fallback after the request has passed
+            // transaction validation and has been marked as requested.
+            if (string.Equals(
+                Convert.ToString(Session["MISC_JEGRAS_DEPTTRANID"]),
+                deptTranId,
+                StringComparison.Ordinal))
+            {
+                Session.Remove("MISC_JEGRAS_REQUEST");
+                Session.Remove("MISC_JEGRAS_DEPTTRANID");
+            }
+
             RequestPayload = encrypted;
             litRequestInput.Text = "<input type=\"hidden\" name=\"requestparam\" value=\"" + HttpUtility.HtmlAttributeEncode(encrypted) + "\" />";
             pnlValidRequest.Visible = true;
