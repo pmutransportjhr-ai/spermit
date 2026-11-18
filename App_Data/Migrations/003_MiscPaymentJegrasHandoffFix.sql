@@ -1,3 +1,6 @@
+USE JHT_LIVE;
+GO
+
 /*
     SPERMIT - MISCELLANEOUS JEGRAS HAND-OFF FIX
     Apply after the five-table miscellaneous-payment migration.
