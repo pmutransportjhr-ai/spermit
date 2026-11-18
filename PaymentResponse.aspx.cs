@@ -68,6 +68,13 @@ public partial class PaymentResponse : System.Web.UI.Page
             CHALLAN_URL=arr[19];
             PMODE=arr[20];
             ADDINFO5=arr[21];
+
+            // Miscellaneous payments share this whitelisted response endpoint.
+            if ((ADDINFO3 ?? "").StartsWith("MISC-", StringComparison.Ordinal))
+            {
+                HandleMiscellaneousResponse(arr);
+                return;
+            }
             String[] aa = new string[3];
             String MSG = "";
 
@@ -190,6 +197,82 @@ public partial class PaymentResponse : System.Web.UI.Page
             
         }
     }
+
+    private void HandleMiscellaneousResponse(string[] data)
+    {
+        try
+        {
+            if (data.Length < 22)
+                throw new InvalidOperationException("Incomplete gateway response.");
+
+            DataTable transactions = MiscPaymentService.GetTransaction(data[3]);
+            if (transactions.Rows.Count != 1)
+                throw new InvalidOperationException("Miscellaneous payment transaction was not found.");
+
+            DataRow stored = transactions.Rows[0];
+            decimal gatewayAmount;
+            int gatewayAppId;
+            string expectedMarker = "MISC-" +
+                Convert.ToString(stored["AUTHORITY_CODE"]) + "-" +
+                Convert.ToString(stored["REASON_ID"]);
+
+            if (!decimal.TryParse(data[4], System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out gatewayAmount) ||
+                !int.TryParse(data[8], out gatewayAppId) ||
+                gatewayAmount != Convert.ToDecimal(stored["AMOUNT"]) ||
+                gatewayAppId != Convert.ToInt32(stored["APP_ID"]) ||
+                !string.Equals(data[5], Convert.ToString(stored["APPLICATION_NUMBER"]), StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(data[7], Convert.ToString(stored["OPERATION_FOR"]), StringComparison.Ordinal) ||
+                !string.Equals(data[9], expectedMarker, StringComparison.Ordinal) ||
+                !string.Equals(data[0], Convert.ToString(stored["CFG_DEPTID"]), StringComparison.Ordinal) ||
+                !string.Equals(data[1], Convert.ToString(stored["CFG_RECEIPTHEADCODE"]), StringComparison.Ordinal) ||
+                !string.Equals(data[2], Convert.ToString(stored["APPLICANT_NAME"]).Replace("&", "and"), StringComparison.Ordinal) ||
+                !string.Equals(data[10], Convert.ToString(stored["CFG_TREASCODE"]), StringComparison.Ordinal) ||
+                !string.Equals(data[11], Convert.ToString(stored["CFG_IFMSOFFICECODE"]), StringComparison.Ordinal))
+                throw new InvalidOperationException("Gateway response did not match the initiated miscellaneous payment.");
+
+            string status = (data[12] ?? "").Trim().ToUpperInvariant();
+            if (status == "SUCCESSFUL") status = "SUCCESS";
+            if (status == "PENDING") status = "BOOKED";
+            if (status != "SUCCESS" && status != "FAIL" && status != "BOOKED")
+                throw new InvalidOperationException("Unrecognized gateway transaction status.");
+
+            DateTime parsedDate;
+            bool dateParsed = DateTime.TryParse(data[17],
+                System.Globalization.CultureInfo.GetCultureInfo("en-GB"),
+                System.Globalization.DateTimeStyles.AssumeLocal, out parsedDate);
+            if (!dateParsed)
+                dateParsed = DateTime.TryParse(data[17],
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.AssumeLocal, out parsedDate);
+            DateTime? txnDate = dateParsed ? (DateTime?)parsedDate : null;
+
+            decimal parsedTxnAmount;
+            decimal? txnAmount = status == "FAIL" ? (decimal?)0 :
+                (decimal.TryParse(data[18], System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out parsedTxnAmount) && parsedTxnAmount > 0
+                    ? (decimal?)parsedTxnAmount : gatewayAmount);
+
+            MiscPaymentService.SaveGatewayResponse(data[3], status, data[13], data[16], data[20],
+                txnDate, txnAmount, data[19], data[14], data[15], data[0], data[1],
+                data[6], data[10], data[11], data[21]);
+
+            string message = status == "SUCCESS"
+                ? "Miscellaneous payment completed successfully."
+                : status == "FAIL"
+                    ? "Miscellaneous payment failed. Please check payment status before retrying."
+                    : "Miscellaneous payment is booked or pending confirmation. Please check payment status later.";
+
+            ScriptManager.RegisterClientScriptBlock(this, GetType(), Guid.NewGuid().ToString(),
+                "alert('" + message + "');window.location='MISC_PAYMENT_STATUS.aspx';", true);
+        }
+        catch
+        {
+            ScriptManager.RegisterClientScriptBlock(this, GetType(), Guid.NewGuid().ToString(),
+                "alert('Unable to verify or update the miscellaneous payment response. Please check payment status.');window.location='MISC_PAYMENT_STATUS.aspx';", true);
+        }
+    }
+
  private void savetoDatabase(string encryptString, string Responsefor, string details)
     {
         string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["connectionstring"].ToString();
