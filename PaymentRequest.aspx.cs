@@ -121,6 +121,7 @@ public partial class PaymentRequest : System.Web.UI.Page
                 string panno = arr1[6];
                 string addInfo1 = arr1[7]; // OPERATION_FOR (e.g. "STA COUNTER SIGNATURE TAX PAY")
                 string addInfo2 = arr1[8]; // APP_ID
+                string addInfo3 = arr1[9]; // MISC reason marker for miscellaneous payments
                 // arr1[9] is generally ADDINFO3 / TYPE if needed
                 string treasCode = arr1[10];
                 string ifmsOfficeCode = arr1[11];
@@ -140,6 +141,14 @@ public partial class PaymentRequest : System.Web.UI.Page
                 IFMSOFFICECODE = ifmsOfficeCode;
 
                 enc_val = Request.QueryString["q"].ToString(); // if you want to bind it in markup / JS
+
+                // Miscellaneous payments use the same whitelisted gateway request page,
+                // but their transaction is validated against MISC_PAYMENT_TRANSACTION.
+                if ((addInfo3 ?? "").StartsWith("MISC-", StringComparison.Ordinal))
+                {
+                    ValidateMiscellaneousRequest(arr1, amount);
+                    return;
+                }
 
                 // 4. Check previous transaction status from history table
                 using (SqlConnection con = new SqlConnection(SQLHelper.GetConnString()))
@@ -249,5 +258,37 @@ public partial class PaymentRequest : System.Web.UI.Page
             );
             return;
         }
+    }
+    private void ValidateMiscellaneousRequest(string[] data, decimal amount)
+    {
+        int appId;
+        if (!int.TryParse(data[8], out appId))
+            throw new InvalidOperationException("Invalid miscellaneous payment application ID.");
+
+        DataTable transactions = MiscPaymentService.GetTransaction(data[3]);
+        if (transactions.Rows.Count != 1)
+            throw new InvalidOperationException("Miscellaneous payment transaction was not found.");
+
+        DataRow stored = transactions.Rows[0];
+        string expectedMarker = "MISC-" +
+            Convert.ToString(stored["AUTHORITY_CODE"]) + "-" +
+            Convert.ToString(stored["REASON_ID"]);
+
+        if (!string.Equals(Convert.ToString(stored["TRN_STATUS"]), "INITIATED", StringComparison.Ordinal) ||
+            appId != Convert.ToInt32(stored["APP_ID"]) ||
+            !string.Equals(data[5], Convert.ToString(stored["APPLICATION_NUMBER"]), StringComparison.Ordinal) ||
+            amount != Convert.ToDecimal(stored["AMOUNT"]) ||
+            !string.Equals(data[7], Convert.ToString(stored["OPERATION_FOR"]), StringComparison.Ordinal) ||
+            !string.Equals(data[2], Convert.ToString(stored["APPLICANT_NAME"]).Replace("&", "and"), StringComparison.Ordinal) ||
+            !string.Equals(data[9], expectedMarker, StringComparison.Ordinal) ||
+            !string.Equals(data[0], Convert.ToString(stored["CFG_DEPTID"]), StringComparison.Ordinal) ||
+            !string.Equals(data[1], Convert.ToString(stored["CFG_RECEIPTHEADCODE"]), StringComparison.Ordinal) ||
+            !string.Equals(data[10], Convert.ToString(stored["CFG_TREASCODE"]), StringComparison.Ordinal) ||
+            !string.Equals(data[11], Convert.ToString(stored["CFG_IFMSOFFICECODE"]), StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Miscellaneous payment request does not match the stored transaction.");
+        }
+
+        MiscPaymentService.MarkRequested(data[3]);
     }
 }
