@@ -263,12 +263,12 @@ public partial class PaymentResponse : System.Web.UI.Page
                     ? "Miscellaneous payment failed. Please check payment status before retrying."
                     : "Miscellaneous payment is booked or pending confirmation. Please check payment status later.";
 
-            ScriptManager.RegisterClientScriptBlock(this, GetType(), Guid.NewGuid().ToString(),
+            ClientScript.RegisterStartupScript(GetType(), Guid.NewGuid().ToString(),
                 "alert('" + message + "');window.location='MISC_PAYMENT_STATUS.aspx';", true);
         }
         catch
         {
-            ScriptManager.RegisterClientScriptBlock(this, GetType(), Guid.NewGuid().ToString(),
+            ClientScript.RegisterStartupScript(GetType(), Guid.NewGuid().ToString(),
                 "alert('Unable to verify or update the miscellaneous payment response. Please check payment status.');window.location='MISC_PAYMENT_STATUS.aspx';", true);
         }
     }
