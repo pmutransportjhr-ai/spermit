@@ -42,6 +42,45 @@ public void ProcessRequest (HttpContext context) {
                    string TREASCODE = arr1[10];
                    string IFMSOFFICECODE = arr1[11];
                    string SECURITY_CODE = arr1[12];
+
+                   // Miscellaneous payments already have their own transaction record.
+                   // Validate it here, then allow the shared PaymentRequest page to post
+                   // the same encrypted payload to JEGRAS without writing to legacy history.
+                   if (arr1.Length >= 13 && (arr1[9] ?? "").StartsWith("MISC-", StringComparison.Ordinal))
+                   {
+                       int miscAppId;
+                       decimal miscAmount;
+                       if (!int.TryParse(ADDINFO2, out miscAppId) ||
+                           !decimal.TryParse(arr1[4], System.Globalization.NumberStyles.Number,
+                               System.Globalization.CultureInfo.InvariantCulture, out miscAmount))
+                           throw new InvalidOperationException("Invalid miscellaneous payment reference or amount.");
+
+                       DataTable miscTransactions = MiscPaymentService.GetTransaction(DEPTTRANID);
+                       if (miscTransactions.Rows.Count != 1)
+                           throw new InvalidOperationException("Miscellaneous payment transaction was not found.");
+
+                       DataRow miscStored = miscTransactions.Rows[0];
+                       string expectedMarker = "MISC-" +
+                           Convert.ToString(miscStored["AUTHORITY_CODE"]) + "-" +
+                           Convert.ToString(miscStored["REASON_ID"]);
+
+                       if (!string.Equals(Convert.ToString(miscStored["TRN_STATUS"]), "REQUESTED", StringComparison.Ordinal) ||
+                           miscAppId != Convert.ToInt32(miscStored["APP_ID"]) ||
+                           !string.Equals(DEPOSITERID, Convert.ToString(miscStored["APPLICATION_NUMBER"]), StringComparison.Ordinal) ||
+                           miscAmount != Convert.ToDecimal(miscStored["AMOUNT"]) ||
+                           !string.Equals(ADDINFO1, Convert.ToString(miscStored["OPERATION_FOR"]), StringComparison.Ordinal) ||
+                           !string.Equals(DEPOSITERNAME, Convert.ToString(miscStored["APPLICANT_NAME"]).Replace("&", "and"), StringComparison.Ordinal) ||
+                           !string.Equals(arr1[9], expectedMarker, StringComparison.Ordinal) ||
+                           !string.Equals(DEPTID, Convert.ToString(miscStored["CFG_DEPTID"]), StringComparison.Ordinal) ||
+                           !string.Equals(RECIEPTHEADCODE, Convert.ToString(miscStored["CFG_RECEIPTHEADCODE"]), StringComparison.Ordinal) ||
+                           !string.Equals(TREASCODE, Convert.ToString(miscStored["CFG_TREASCODE"]), StringComparison.Ordinal) ||
+                           !string.Equals(IFMSOFFICECODE, Convert.ToString(miscStored["CFG_IFMSOFFICECODE"]), StringComparison.Ordinal))
+                           throw new InvalidOperationException("Miscellaneous payment request does not match the stored transaction.");
+
+                       objTrans.Commit();
+                       context.Response.Write("Success");
+                       return;
+                   }
                    SqlCommand scmd = new SqlCommand("SP_PAYMENT_TRANSACTIONS_HISTORY_AED");
                    scmd.Parameters.AddWithValue("@APP_ID", Convert.ToInt32(ADDINFO2));
                    scmd.Parameters.AddWithValue("@APPLICATION_NUMBER", DEPOSITERID);
