@@ -3,7 +3,6 @@ using System.Data;
 using System.Globalization;
 using System.Web;
 using System.Web.UI;
-using SoftEra.JHT.Infrastructure;
 
 public partial class MISC_PAYMENT_REQUEST : Page
 {
@@ -37,18 +36,33 @@ public partial class MISC_PAYMENT_REQUEST : Page
             if (tx.Rows.Count != 1) { Reject("Payment transaction was not found."); return; }
             DataRow row = tx.Rows[0];
 
-            bool valid = Convert.ToString(row["TRN_STATUS"]) == "INITIATED" &&
-                Convert.ToString(row["APPLICATION_NUMBER"]) == data[5] &&
-                Convert.ToInt32(row["APP_ID"]) == appId &&
-                Convert.ToDecimal(row["AMOUNT"]) == amount &&
-                string.Equals(Convert.ToString(row["OPERATION_FOR"]), data[7], StringComparison.Ordinal) &&
-                string.Equals(data[2], Convert.ToString(row["APPLICANT_NAME"]).Replace("&", "and"), StringComparison.Ordinal) &&
-                string.Equals(data[9], Convert.ToString(row["TR_TYPE"]), StringComparison.Ordinal) &&
-                string.Equals(data[9], "MISC-" + Convert.ToString(row["AUTHORITY_CODE"]) + "-" + Convert.ToString(row["REASON_ID"]), StringComparison.Ordinal) &&
-                Convert.ToString(row["CFG_DEPTID"]) == data[0] &&
-                Convert.ToString(row["CFG_RECEIPTHEADCODE"]) == data[1] &&
-                Convert.ToString(row["CFG_TREASCODE"]) == data[10] &&
-                Convert.ToString(row["CFG_IFMSOFFICECODE"]) == data[11];
+            bool valid =
+     Convert.ToString(row["TRN_STATUS"]) == "INITIATED" &&
+     Convert.ToString(row["APPLICATION_NUMBER"]) == data[5] &&
+     Convert.ToInt32(row["APP_ID"]) == appId &&
+     Convert.ToDecimal(row["AMOUNT"]) == amount &&
+
+     string.Equals(
+         Convert.ToString(row["OPERATION_FOR"]),
+         data[7],
+         StringComparison.Ordinal) &&
+
+     string.Equals(
+         data[2],
+         Convert.ToString(row["APPLICANT_NAME"]).Replace("&", "and"),
+         StringComparison.Ordinal) &&
+
+     // ADDINFO3 contains the MISC reason marker, not TR_TYPE.
+     string.Equals(
+         data[9],
+         "MISC-" + Convert.ToString(row["AUTHORITY_CODE"]) + "-" +
+         Convert.ToString(row["REASON_ID"]),
+         StringComparison.Ordinal) &&
+
+     string.Equals(Convert.ToString(row["CFG_DEPTID"]), data[0], StringComparison.Ordinal) &&
+     string.Equals(Convert.ToString(row["CFG_RECEIPTHEADCODE"]), data[1], StringComparison.Ordinal) &&
+     string.Equals(Convert.ToString(row["CFG_TREASCODE"]), data[10], StringComparison.Ordinal) &&
+     string.Equals(Convert.ToString(row["CFG_IFMSOFFICECODE"]), data[11], StringComparison.Ordinal);
 
             if (!valid) { Reject("Payment request does not match the stored transaction."); return; }
             MiscPaymentService.MarkRequested(deptTranId);

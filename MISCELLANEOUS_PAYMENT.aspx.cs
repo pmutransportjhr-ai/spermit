@@ -463,84 +463,372 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         }
     }
 
+
     protected void btnMiscPay_Click(object sender, EventArgs e)
     {
         try
         {
-            if (Session["MISC_APP_VERIFIED"] == null || !(bool)Session["MISC_APP_VERIFIED"])
-                throw new InvalidOperationException("Verify the application with OTP before proceeding.");
+            if (Session["MISC_APP_VERIFIED"] == null ||
+                !(bool)Session["MISC_APP_VERIFIED"])
+            {
+                throw new InvalidOperationException(
+                    "Verify the application with OTP before proceeding.");
+            }
+
             string appNumber = Convert.ToString(Session["MISC_APP_NUMBER"]);
             string authority = Convert.ToString(Session["MISC_APP_AUTHORITY"]);
+
             if (authority != ddlAuthority.SelectedValue)
-                throw new InvalidOperationException("Selected authority does not match the application authority.");
+            {
+                throw new InvalidOperationException(
+                    "Selected authority does not match the application authority.");
+            }
 
             int reasonId;
             if (!int.TryParse(ddlReason.SelectedValue, out reasonId))
-                throw new InvalidOperationException("Select a payment reason.");
-            DataTable reasons = MiscPaymentService.ExecuteReason("LIST_REASONS", authority, null);
-            DataRow[] selected = reasons.Select("REASON_ID=" + reasonId.ToString(CultureInfo.InvariantCulture));
-            if (selected.Length == 0) throw new InvalidOperationException("Invalid or inactive payment reason.");
-
-            decimal amount = GetPaymentAmount(reasonId);
-            if (amount <= 0)
-                throw new InvalidOperationException("Enter a valid payment amount greater than zero.");
-            if (decimal.Round(amount, 2) != amount)
-                throw new InvalidOperationException("Payment amount can have a maximum of two decimal places.");
-            if (Convert.ToString(selected[0]["AMOUNT_MODE"]) == "FIXED" &&
-                amount != Convert.ToDecimal(selected[0]["FIXED_AMOUNT"]))
-                throw new InvalidOperationException("Amount does not match the fixed amount for this reason.");
-
-            string fieldsJson = CollectDynamicFields(reasonId);
-            string deptId, receiptHead, treasury, office;
-            using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
-            using (SqlCommand cmd = new SqlCommand(@"SELECT DEPTID,RECEIPTHEADCODE,TREASCODE,IFMSOFFICECODE
-                FROM dbo.MISC_PAYMENT_AUTHORITY_MASTER WHERE AUTHORITY_CODE=@AUTHORITY_CODE AND IS_ACTIVE=1", con))
             {
-                cmd.Parameters.Add("@AUTHORITY_CODE", SqlDbType.VarChar, 3).Value = authority;
-                con.Open();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    if (!reader.Read()) throw new InvalidOperationException("Payment configuration is not available.");
-                    deptId = Convert.ToString(reader["DEPTID"]);
-                    receiptHead = Convert.ToString(reader["RECEIPTHEADCODE"]);
-                    treasury = Convert.ToString(reader["TREASCODE"]);
-                    office = Convert.ToString(reader["IFMSOFFICECODE"]);
-                }
+                throw new InvalidOperationException("Select a payment reason.");
             }
 
-            string securityCode = ConfigurationManager.AppSettings["JEGRAS_SECURITY_CODE"];
+            DataTable reasons = MiscPaymentService.ExecuteReason(
+                "LIST_REASONS", authority, null);
+
+            DataRow[] selected = reasons.Select(
+                "REASON_ID=" + reasonId.ToString(CultureInfo.InvariantCulture));
+
+            if (selected.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "Invalid or inactive payment reason.");
+            }
+
+            decimal amount = GetPaymentAmount(reasonId);
+
+            if (amount <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Enter a valid payment amount greater than zero.");
+            }
+
+            if (decimal.Round(amount, 2) != amount)
+            {
+                throw new InvalidOperationException(
+                    "Payment amount can have a maximum of two decimal places.");
+            }
+
+            if (Convert.ToString(selected[0]["AMOUNT_MODE"]) == "FIXED" &&
+                amount != Convert.ToDecimal(selected[0]["FIXED_AMOUNT"]))
+            {
+                throw new InvalidOperationException(
+                    "Amount does not match the fixed amount for this reason.");
+            }
+
+            // Collect the selected dynamic fields.
+            string fieldsJson = CollectDynamicFields(reasonId);
+
+            // Resolve JEGRAS configuration using the selected reason and fields.
+            // This must return an active row from MISC_PAYMENT_JEGRAS_MAPPING_MASTER.
+            DataRow mapping = GetJegrasMapping(reasonId, fieldsJson);
+
+            if (mapping == null)
+            {
+                throw new InvalidOperationException(
+                    "JEGRAS mapping is not configured for the selected payment option.");
+            }
+
+            string deptId = Convert.ToString(mapping["DEPTID"]);
+            string receiptHead = Convert.ToString(mapping["RECEIPTHEADCODE"]);
+            string treasury = Convert.ToString(mapping["TREASCODE"]);
+            string office = Convert.ToString(mapping["IFMSOFFICECODE"]);
+            string operationFor = Convert.ToString(mapping["OPERATION_FOR"]);
+            string mappedTrType = Convert.ToString(mapping["TR_TYPE"]);
+
+            // Validate all mandatory JEGRAS mapping fields.
+            if (string.IsNullOrWhiteSpace(deptId) ||
+                string.IsNullOrWhiteSpace(receiptHead) ||
+                string.IsNullOrWhiteSpace(treasury) ||
+                string.IsNullOrWhiteSpace(office) ||
+                string.IsNullOrWhiteSpace(operationFor) ||
+                string.IsNullOrWhiteSpace(mappedTrType))
+            {
+                throw new InvalidOperationException(
+                    "JEGRAS mapping is incomplete. Configure DEPTID, " +
+                    "RECEIPTHEADCODE, TREASCODE, IFMSOFFICECODE, " +
+                    "OPERATION_FOR and TR_TYPE for this payment option.");
+            }
+
+            string securityCode =
+                ConfigurationManager.AppSettings["JEGRAS_SECURITY_CODE"];
+
             if (string.IsNullOrWhiteSpace(securityCode))
-                throw new InvalidOperationException("Configure JEGRAS_SECURITY_CODE in application settings before enabling payment.");
+            {
+                throw new InvalidOperationException(
+                    "Configure JEGRAS_SECURITY_CODE in application settings before enabling payment.");
+            }
 
-            string deptTranId = DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture);
-            string reasonInfo = "MISC-" + authority + "-" + reasonId.ToString(CultureInfo.InvariantCulture);
-            string operationFor = Convert.ToString(selected[0]["REASON_NAME"]);
-            string applicantName = Convert.ToString(Session["MISC_APP_NAME"]);
-            if (operationFor.Contains("|") || applicantName.Contains("|") || appNumber.Contains("|"))
-                throw new InvalidOperationException("Payment details contain an unsupported separator character.");
-            string encrypted = PayGetWayDTO.MakeEncryptedData(deptId, receiptHead,
-                applicantName, deptTranId,
-                amount.ToString("0.00", CultureInfo.InvariantCulture), appNumber, "NA",
-                operationFor, Convert.ToString(Session["MISC_APP_ID"]),
-                reasonInfo, treasury, office, securityCode);
-            try { Convert.FromBase64String(encrypted); }
-            catch { throw new InvalidOperationException("Unable to prepare JEGRAS payment request. Check the Finance configuration."); }
+            string deptTranId = DateTime.UtcNow.Ticks.ToString(
+                CultureInfo.InvariantCulture);
 
-            // Persist the exact transaction before redirecting to the gateway.
-            MiscPaymentService.CreateTransaction(deptTranId, Convert.ToInt32(Session["MISC_APP_ID"]),
-                appNumber, applicantName, authority, reasonId, amount,
-                fieldsJson, reasonInfo, deptId, receiptHead, treasury, office);
+            // Keep this as the application-side reference/information value.
+            // The actual JEGRAS TR_TYPE comes from the selected mapping.
+            string reasonInfo = "MISC-" + authority + "-" +
+                reasonId.ToString(CultureInfo.InvariantCulture);
 
-            Response.Redirect("MISC_PAYMENT_REQUEST.aspx?q=" +
-                HttpUtility.UrlEncode(encrypted, Response.ContentEncoding), false);
+            string applicantName =
+                Convert.ToString(Session["MISC_APP_NAME"]);
+
+            string applicantId =
+                Convert.ToString(Session["MISC_APP_ID"]);
+
+            if (string.IsNullOrWhiteSpace(applicantName) ||
+                string.IsNullOrWhiteSpace(appNumber) ||
+                string.IsNullOrWhiteSpace(applicantId))
+            {
+                throw new InvalidOperationException(
+                    "Applicant or application details are missing. Please verify the application again.");
+            }
+
+            if (operationFor.Contains("|") ||
+                applicantName.Contains("|") ||
+                appNumber.Contains("|") ||
+                applicantId.Contains("|") ||
+                mappedTrType.Contains("|"))
+            {
+                throw new InvalidOperationException(
+                    "Payment details contain an unsupported separator character.");
+            }
+
+            // Prepare encrypted JEGRAS request using mapped configuration.
+            // mappedTrType is passed in place of the previous reasonInfo argument.
+            string encrypted = PayGetWayDTO.MakeEncryptedData(
+                deptId,
+                receiptHead,
+                applicantName,
+                deptTranId,
+                amount.ToString("0.00", CultureInfo.InvariantCulture),
+                appNumber,
+                "NA",
+                operationFor,
+                applicantId,
+                mappedTrType,
+                treasury,
+                office,
+                securityCode);
+
+            try
+            {
+                Convert.FromBase64String(encrypted);
+            }
+            catch
+            {
+                throw new InvalidOperationException(
+                    "Unable to prepare JEGRAS payment request. Check the Finance configuration.");
+            }
+
+            // Persist the transaction before redirecting to JEGRAS.
+            // The stored procedure should independently resolve the same mapping
+            // from reasonId + fieldsJson and persist its OPERATION_FOR/TR_TYPE.
+            MiscPaymentService.CreateTransaction(
+                deptTranId,
+                Convert.ToInt32(Session["MISC_APP_ID"]),
+                appNumber,
+                applicantName,
+                authority,
+                reasonId,
+                amount,
+                fieldsJson,
+                reasonInfo,
+                deptId,
+                receiptHead,
+                treasury,
+                office);
+
+            Response.Redirect(
+                "MISC_PAYMENT_REQUEST.aspx?q=" +
+                HttpUtility.UrlEncode(encrypted, Response.ContentEncoding),
+                false);
+
             Context.ApplicationInstance.CompleteRequest();
         }
-        catch (Exception ex) { ShowMessage(ex.Message); }
+        catch (Exception ex)
+        {
+            ShowMessage(ex.Message);
+        }
     }
+
 
     private void ShowMessage(string message)
     {
         lblMessage.Text = HttpUtility.HtmlEncode(message);
         lblMessage.Visible = true;
     }
+
+
+
+
+
+    private DataRow GetJegrasMapping(int reasonId, string fieldsJson)
+    {
+        Dictionary<string, string> fields;
+
+        try
+        {
+            fields = string.IsNullOrWhiteSpace(fieldsJson)
+                ? new Dictionary<string, string>()
+                : new System.Web.Script.Serialization.JavaScriptSerializer()
+                    .Deserialize<Dictionary<string, string>>(fieldsJson)
+                    ?? new Dictionary<string, string>();
+        }
+        catch
+        {
+            throw new InvalidOperationException(
+                "Invalid payment details. Please refresh and try again.");
+        }
+
+        string fieldKey = null;
+        string optionCode = null;
+        string parentFieldKey = null;
+        string parentOptionCode = null;
+
+        if (reasonId == 2)
+        {
+            string feeCategory;
+            fields.TryGetValue("FEE_CATEGORY", out feeCategory);
+
+            feeCategory = (feeCategory ?? "").Trim().ToUpperInvariant();
+
+            if (feeCategory == "PERMIT_FEE")
+            {
+                fieldKey = "TYPE_OF_FEE";
+                parentFieldKey = "FEE_CATEGORY";
+                parentOptionCode = "PERMIT_FEE";
+
+                fields.TryGetValue("TYPE_OF_FEE", out optionCode);
+            }
+            else if (feeCategory == "COUNTERSIGNATURE_FEE")
+            {
+                fieldKey = "FEE_CATEGORY";
+                optionCode = feeCategory;
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "Please select a valid fee category.");
+            }
+        }
+        else if (reasonId == 3)
+        {
+            fieldKey = "TYPE_OF_FEE";
+            fields.TryGetValue(fieldKey, out optionCode);
+        }
+        else if (reasonId == 5)
+        {
+            fieldKey = "RTA_NAME";
+            fields.TryGetValue(fieldKey, out optionCode);
+        }
+
+        if (fieldKey != null)
+        {
+            optionCode = (optionCode ?? "").Trim().ToUpperInvariant();
+
+            if (string.IsNullOrWhiteSpace(optionCode))
+            {
+                throw new InvalidOperationException(
+                    "Select the required payment category.");
+            }
+        }
+
+        using (SqlConnection con = new SqlConnection(
+            ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
+        using (SqlCommand cmd = new SqlCommand(@"
+        SELECT
+            COALESCE(O.OPERATION_FOR, R.OPERATION_FOR) AS OPERATION_FOR,
+            COALESCE(O.TR_TYPE, R.TR_TYPE) AS TR_TYPE,
+            COALESCE(O.DEPTID, A.DEPTID) AS DEPTID,
+            COALESCE(O.RECEIPTHEADCODE, R.RECEIPTHEADCODE,
+                     A.RECEIPTHEADCODE) AS RECEIPTHEADCODE,
+            COALESCE(O.TREASCODE, A.TREASCODE) AS TREASCODE,
+            COALESCE(O.IFMSOFFICECODE, A.IFMSOFFICECODE) AS IFMSOFFICECODE,
+            CASE
+                WHEN @FIELD_KEY IS NULL
+                    THEN ISNULL(R.JEGRAS_ACTIVE, 0)
+                ELSE ISNULL(O.JEGRAS_ACTIVE, 0)
+            END AS IS_ACTIVE
+        FROM dbo.MISC_PAYMENT_REASON_MASTER R
+        INNER JOIN dbo.MISC_PAYMENT_AUTHORITY_MASTER A
+            ON A.AUTHORITY_CODE = R.AUTHORITY_CODE
+           AND A.IS_ACTIVE = 1
+        LEFT JOIN dbo.MISC_PAYMENT_REASON_OPTION_MASTER O
+            ON O.REASON_ID = R.REASON_ID
+           AND O.FIELD_KEY = @FIELD_KEY
+           AND O.OPTION_CODE = @OPTION_CODE
+           AND O.IS_ACTIVE = 1
+           AND (
+                @PARENT_FIELD_KEY IS NULL
+                OR (
+                    O.PARENT_FIELD_KEY = @PARENT_FIELD_KEY
+                    AND O.PARENT_OPTION_CODE = @PARENT_OPTION_CODE
+                )
+           )
+        WHERE R.REASON_ID = @REASON_ID
+          AND R.IS_ACTIVE = 1;", con))
+        {
+            cmd.Parameters.Add("@REASON_ID", SqlDbType.Int).Value = reasonId;
+
+            cmd.Parameters.Add("@FIELD_KEY", SqlDbType.VarChar, 50).Value =
+                fieldKey == null ? (object)DBNull.Value : fieldKey;
+
+            cmd.Parameters.Add("@OPTION_CODE", SqlDbType.VarChar, 100).Value =
+                optionCode == null ? (object)DBNull.Value : optionCode;
+
+            cmd.Parameters.Add("@PARENT_FIELD_KEY", SqlDbType.VarChar, 50).Value =
+                parentFieldKey == null ? (object)DBNull.Value : parentFieldKey;
+
+            cmd.Parameters.Add("@PARENT_OPTION_CODE", SqlDbType.VarChar, 100).Value =
+                parentOptionCode == null ? (object)DBNull.Value : parentOptionCode;
+
+            DataTable dt = new DataTable();
+
+            using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+            {
+                da.Fill(dt);
+            }
+
+            if (dt.Rows.Count == 0 ||
+                !Convert.ToBoolean(dt.Rows[0]["IS_ACTIVE"]))
+            {
+                throw new InvalidOperationException(
+                    "JEGRAS configuration is not active for the selected payment option. Please contact the department administrator.");
+            }
+
+            DataRow row = dt.Rows[0];
+
+            string[] requiredColumns =
+            {
+            "OPERATION_FOR",
+            "TR_TYPE",
+            "DEPTID",
+            "RECEIPTHEADCODE",
+            "TREASCODE",
+            "IFMSOFFICECODE"
+        };
+
+            foreach (string column in requiredColumns)
+            {
+                if (row[column] == DBNull.Value ||
+                    string.IsNullOrWhiteSpace(Convert.ToString(row[column])))
+                {
+                    throw new InvalidOperationException(
+                        "JEGRAS configuration is incomplete (" + column +
+                        "). Please contact the department administrator.");
+                }
+            }
+
+            return row;
+        }
+    }
+
+
+
+
 }
