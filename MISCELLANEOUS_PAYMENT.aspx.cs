@@ -643,11 +643,8 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
                 treasury,
                 office);
 
-            Session["MISC_JEGRAS_REQUEST"] = encrypted;
-            Session["MISC_JEGRAS_DEPTTRANID"] = deptTranId;
-
             Response.Redirect(
-                "MISC_PAYMENT_REQUEST.aspx?q=" +
+                "PaymentRequest.aspx?q=" +
                 HttpUtility.UrlEncode(encrypted, Response.ContentEncoding),
                 false);
 
