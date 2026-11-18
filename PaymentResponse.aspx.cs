@@ -75,8 +75,10 @@ public partial class PaymentResponse : System.Web.UI.Page
             PMODE=arr[20];
             ADDINFO5=arr[21];
 
-            // Miscellaneous payments share this whitelisted response endpoint.
-            if ((ADDINFO3 ?? "").StartsWith("MISC-", StringComparison.Ordinal))
+            // The gateway echoes DEPTTRANID. Use the miscellaneous transaction table
+            // to select the correct response handler without changing gateway ADDINFO3.
+            DataTable miscTransaction = MiscPaymentService.GetTransaction(DEPTTRANID);
+            if (miscTransaction.Rows.Count > 0)
             {
                 HandleMiscellaneousResponse(arr);
                 return;
@@ -218,10 +220,6 @@ public partial class PaymentResponse : System.Web.UI.Page
             DataRow stored = transactions.Rows[0];
             decimal gatewayAmount;
             int gatewayAppId;
-            string expectedMarker = "MISC-" +
-                Convert.ToString(stored["AUTHORITY_CODE"]) + "-" +
-                Convert.ToString(stored["REASON_ID"]);
-
             if (!decimal.TryParse(data[4], System.Globalization.NumberStyles.Number,
                     System.Globalization.CultureInfo.InvariantCulture, out gatewayAmount) ||
                 !int.TryParse(data[8], out gatewayAppId) ||
@@ -229,7 +227,7 @@ public partial class PaymentResponse : System.Web.UI.Page
                 gatewayAppId != Convert.ToInt32(stored["APP_ID"]) ||
                 !string.Equals(data[5], Convert.ToString(stored["APPLICATION_NUMBER"]), StringComparison.OrdinalIgnoreCase) ||
                 !string.Equals(data[7], Convert.ToString(stored["OPERATION_FOR"]), StringComparison.Ordinal) ||
-                !string.Equals(data[9], expectedMarker, StringComparison.Ordinal) ||
+                !string.Equals(data[9], Convert.ToString(stored["TR_TYPE"]), StringComparison.Ordinal) ||
                 !string.Equals(data[0], Convert.ToString(stored["CFG_DEPTID"]), StringComparison.Ordinal) ||
                 !string.Equals(data[1], Convert.ToString(stored["CFG_RECEIPTHEADCODE"]), StringComparison.Ordinal) ||
                 !string.Equals(data[2], Convert.ToString(stored["APPLICANT_NAME"]).Replace("&", "and"), StringComparison.Ordinal) ||
