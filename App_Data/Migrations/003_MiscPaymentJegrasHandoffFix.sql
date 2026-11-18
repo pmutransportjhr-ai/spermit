@@ -1,0 +1,272 @@
+/*
+    SPERMIT - MISCELLANEOUS JEGRAS HAND-OFF FIX
+    Apply after the five-table miscellaneous-payment migration.
+    SQL Server 2019 / JHT_LIVE
+
+    Fixes:
+      1. Resolves JEGRAS settings from the selected option row when applicable.
+      2. Stores the selected OPERATION_FOR / TR_TYPE / treasury / IFMS snapshot.
+      3. Returns transaction snapshot values as CFG_* for request validation.
+*/
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+GO
+
+CREATE OR ALTER PROCEDURE dbo.SP_MISC_PAYMENT_TRANSACTION_AED
+    @MODE VARCHAR(30),
+    @DEPTTRANID VARCHAR(40)=NULL,
+    @APP_ID INT=NULL,
+    @APPLICATION_NUMBER VARCHAR(120)=NULL,
+    @APPLICANT_NAME NVARCHAR(200)=NULL,
+    @AUTHORITY_CODE VARCHAR(3)=NULL,
+    @REASON_ID INT=NULL,
+    @TR_TYPE VARCHAR(100)=NULL,
+    @AMOUNT DECIMAL(18,2)=NULL,
+    @ADDITIONAL_FIELDS_JSON NVARCHAR(MAX)=NULL,
+    @TRN_STATUS VARCHAR(20)=NULL,
+    @TRN_MESSAGE NVARCHAR(1000)=NULL,
+    @TRN_REF_NO VARCHAR(100)=NULL,
+    @PAY_MODE VARCHAR(50)=NULL,
+    @TXN_DATE DATETIME2(0)=NULL,
+    @TXN_AMOUNT DECIMAL(18,2)=NULL,
+    @CHALLAN_URL NVARCHAR(1000)=NULL,
+    @GRN VARCHAR(100)=NULL,
+    @CIN VARCHAR(100)=NULL,
+    @DEPTID VARCHAR(20)=NULL,
+    @RECEIPTHEADCODE VARCHAR(30)=NULL,
+    @PANNO VARCHAR(20)=NULL,
+    @TREASCODE VARCHAR(20)=NULL,
+    @IFMSOFFICECODE VARCHAR(30)=NULL,
+    @ADDINFO5 NVARCHAR(500)=NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @MODE='CREATE'
+    BEGIN
+        IF NULLIF(@DEPTTRANID,'') IS NULL
+           OR @APP_ID IS NULL OR @APP_ID<=0
+           OR NULLIF(@APPLICATION_NUMBER,'') IS NULL
+            THROW 51101,'Application and department transaction details are required.',1;
+
+        IF @AMOUNT IS NULL OR @AMOUNT<=0
+            THROW 51102,'Payment amount must be greater than zero.',1;
+
+        IF @ADDITIONAL_FIELDS_JSON IS NOT NULL AND ISJSON(@ADDITIONAL_FIELDS_JSON)<>1
+            THROW 51103,'Invalid additional payment details.',1;
+
+        DECLARE
+            @REASON_NAME NVARCHAR(200),
+            @CONFIG_OPERATION_FOR NVARCHAR(200),
+            @CONFIG_TR_TYPE VARCHAR(100),
+            @CONFIG_DEPTID VARCHAR(20),
+            @CONFIG_RECEIPTHEADCODE VARCHAR(30),
+            @CONFIG_TREASCODE VARCHAR(20),
+            @CONFIG_IFMSOFFICECODE VARCHAR(30),
+            @CONFIG_JEGRAS_ACTIVE BIT,
+            @FIELD_KEY VARCHAR(50)=NULL,
+            @OPTION_CODE VARCHAR(100)=NULL,
+            @PARENT_FIELD_KEY VARCHAR(50)=NULL,
+            @PARENT_OPTION_CODE VARCHAR(100)=NULL,
+            @FEE_CATEGORY VARCHAR(100)=NULL;
+
+        /*
+          Resolve the option selected by the applicant:
+            Reason 2: Countersignature category OR child TYPE_OF_FEE under PERMIT_FEE
+            Reason 3: TYPE_OF_FEE
+            Reason 5: RTA_NAME
+          Reasons 1 and 4 use reason-level JEGRAS settings.
+        */
+        IF @REASON_ID=2
+        BEGIN
+            SET @FEE_CATEGORY=UPPER(LTRIM(RTRIM(
+                ISNULL(JSON_VALUE(@ADDITIONAL_FIELDS_JSON,'$.FEE_CATEGORY'),'')
+            )));
+
+            IF @FEE_CATEGORY='COUNTERSIGNATURE_FEE'
+            BEGIN
+                SET @FIELD_KEY='FEE_CATEGORY';
+                SET @OPTION_CODE='COUNTERSIGNATURE_FEE';
+            END
+            ELSE IF @FEE_CATEGORY='PERMIT_FEE'
+            BEGIN
+                SET @FIELD_KEY='TYPE_OF_FEE';
+                SET @OPTION_CODE=UPPER(LTRIM(RTRIM(
+                    ISNULL(JSON_VALUE(@ADDITIONAL_FIELDS_JSON,'$.TYPE_OF_FEE'),'')
+                )));
+                SET @PARENT_FIELD_KEY='FEE_CATEGORY';
+                SET @PARENT_OPTION_CODE='PERMIT_FEE';
+            END
+            ELSE
+                THROW 51111,'A valid STA fee category is required for JEGRAS payment.',1;
+        END
+        ELSE IF @REASON_ID=3
+        BEGIN
+            SET @FIELD_KEY='TYPE_OF_FEE';
+            SET @OPTION_CODE=UPPER(LTRIM(RTRIM(
+                ISNULL(JSON_VALUE(@ADDITIONAL_FIELDS_JSON,'$.TYPE_OF_FEE'),'')
+            )));
+        END
+        ELSE IF @REASON_ID=5
+        BEGIN
+            SET @FIELD_KEY='RTA_NAME';
+            SET @OPTION_CODE=UPPER(LTRIM(RTRIM(
+                ISNULL(JSON_VALUE(@ADDITIONAL_FIELDS_JSON,'$.RTA_NAME'),'')
+            )));
+        END;
+
+        IF @FIELD_KEY IS NOT NULL AND NULLIF(@OPTION_CODE,'') IS NULL
+            THROW 51112,'The selected JEGRAS payment option is missing.',1;
+
+        SELECT
+            @REASON_NAME=R.REASON_NAME,
+            @CONFIG_OPERATION_FOR=COALESCE(O.OPERATION_FOR,R.OPERATION_FOR),
+            @CONFIG_TR_TYPE=COALESCE(O.TR_TYPE,R.TR_TYPE),
+            @CONFIG_DEPTID=COALESCE(O.DEPTID,A.DEPTID),
+            @CONFIG_RECEIPTHEADCODE=COALESCE(O.RECEIPTHEADCODE,R.RECEIPTHEADCODE,A.RECEIPTHEADCODE),
+            @CONFIG_TREASCODE=COALESCE(O.TREASCODE,A.TREASCODE),
+            @CONFIG_IFMSOFFICECODE=COALESCE(O.IFMSOFFICECODE,A.IFMSOFFICECODE),
+            @CONFIG_JEGRAS_ACTIVE=
+                CASE WHEN @FIELD_KEY IS NULL THEN R.JEGRAS_ACTIVE ELSE O.JEGRAS_ACTIVE END
+        FROM dbo.MISC_PAYMENT_REASON_MASTER R
+        INNER JOIN dbo.MISC_PAYMENT_AUTHORITY_MASTER A
+            ON A.AUTHORITY_CODE=R.AUTHORITY_CODE
+           AND A.IS_ACTIVE=1
+        LEFT JOIN dbo.MISC_PAYMENT_REASON_OPTION_MASTER O
+            ON O.REASON_ID=R.REASON_ID
+           AND O.FIELD_KEY=@FIELD_KEY
+           AND O.OPTION_CODE=@OPTION_CODE
+           AND O.IS_ACTIVE=1
+           AND
+           (
+               @PARENT_FIELD_KEY IS NULL
+               OR
+               (
+                   O.PARENT_FIELD_KEY=@PARENT_FIELD_KEY
+                   AND O.PARENT_OPTION_CODE=@PARENT_OPTION_CODE
+               )
+           )
+        WHERE R.REASON_ID=@REASON_ID
+          AND R.AUTHORITY_CODE=@AUTHORITY_CODE
+          AND R.IS_ACTIVE=1;
+
+        IF @REASON_NAME IS NULL
+            THROW 51104,'Selected payment reason is not active for this authority.',1;
+
+        IF ISNULL(@CONFIG_JEGRAS_ACTIVE,0)<>1
+            THROW 51113,'JEGRAS configuration is not active for the selected payment option.',1;
+
+        IF NULLIF(@CONFIG_OPERATION_FOR,'') IS NULL
+           OR NULLIF(@CONFIG_TR_TYPE,'') IS NULL
+           OR NULLIF(@CONFIG_DEPTID,'') IS NULL
+           OR NULLIF(@CONFIG_RECEIPTHEADCODE,'') IS NULL
+           OR NULLIF(@CONFIG_TREASCODE,'') IS NULL
+           OR NULLIF(@CONFIG_IFMSOFFICECODE,'') IS NULL
+            THROW 51110,'JEGRAS configuration is incomplete for the selected payment option.',1;
+
+        INSERT dbo.MISC_PAYMENT_TRANSACTION
+        (
+            DEPTTRANID,APP_ID,APPLICATION_NUMBER,APPLICANT_NAME,
+            AUTHORITY_CODE,REASON_ID,REASON_NAME,AMOUNT,ADDITIONAL_FIELDS_JSON,
+            OPERATION_FOR,DEPTID,RECEIPTHEADCODE,TR_TYPE,TREASCODE,
+            IFMSOFFICECODE,TRN_STATUS
+        )
+        VALUES
+        (
+            @DEPTTRANID,@APP_ID,@APPLICATION_NUMBER,@APPLICANT_NAME,
+            @AUTHORITY_CODE,@REASON_ID,@REASON_NAME,@AMOUNT,@ADDITIONAL_FIELDS_JSON,
+            @CONFIG_OPERATION_FOR,@CONFIG_DEPTID,@CONFIG_RECEIPTHEADCODE,
+            @CONFIG_TR_TYPE,@CONFIG_TREASCODE,@CONFIG_IFMSOFFICECODE,'INITIATED'
+        );
+
+        SELECT * FROM dbo.MISC_PAYMENT_TRANSACTION WHERE DEPTTRANID=@DEPTTRANID;
+    END
+    ELSE IF @MODE='MARK_REQUESTED'
+    BEGIN
+        UPDATE dbo.MISC_PAYMENT_TRANSACTION
+        SET TRN_STATUS='REQUESTED',UPDATED_ON=SYSDATETIME()
+        WHERE DEPTTRANID=@DEPTTRANID AND TRN_STATUS='INITIATED';
+
+        IF @@ROWCOUNT=0
+            THROW 51108,'Payment request was already submitted or is no longer available.',1;
+
+        SELECT * FROM dbo.MISC_PAYMENT_TRANSACTION WHERE DEPTTRANID=@DEPTTRANID;
+    END
+    ELSE IF @MODE='GET_BY_DEPTTRANID'
+    BEGIN
+        /*
+          These CFG_* aliases must come from the transaction snapshot, not
+          authority defaults. RTA_NAME options can have distinct treasury and
+          IFMS office codes.
+        */
+        SELECT
+            T.*,
+            T.DEPTID AS CFG_DEPTID,
+            T.RECEIPTHEADCODE AS CFG_RECEIPTHEADCODE,
+            T.TREASCODE AS CFG_TREASCODE,
+            T.IFMSOFFICECODE AS CFG_IFMSOFFICECODE
+        FROM dbo.MISC_PAYMENT_TRANSACTION T
+        WHERE T.DEPTTRANID=@DEPTTRANID;
+    END
+    ELSE IF @MODE='UPDATE_RESPONSE'
+    BEGIN
+        UPDATE dbo.MISC_PAYMENT_TRANSACTION
+        SET TRN_STATUS=@TRN_STATUS,
+            TRN_MESSAGE=@TRN_MESSAGE,
+            TRN_REF_NO=@TRN_REF_NO,
+            PAY_MODE=@PAY_MODE,
+            TXN_DATE=@TXN_DATE,
+            TXN_AMOUNT=@TXN_AMOUNT,
+            CHALLAN_URL=@CHALLAN_URL,
+            GRN=@GRN,
+            CIN=@CIN,
+            DEPTID=@DEPTID,
+            RECEIPTHEADCODE=@RECEIPTHEADCODE,
+            PANNO=@PANNO,
+            TREASCODE=@TREASCODE,
+            IFMSOFFICECODE=@IFMSOFFICECODE,
+            ADDINFO5=@ADDINFO5,
+            UPDATED_ON=SYSDATETIME()
+        WHERE DEPTTRANID=@DEPTTRANID
+          AND TRN_STATUS IN ('INITIATED','REQUESTED','BOOKED','FAIL');
+
+        IF @@ROWCOUNT=0
+           AND NOT EXISTS(SELECT 1 FROM dbo.MISC_PAYMENT_TRANSACTION WHERE DEPTTRANID=@DEPTTRANID)
+            THROW 51105,'Miscellaneous payment transaction not found.',1;
+
+        SELECT * FROM dbo.MISC_PAYMENT_TRANSACTION WHERE DEPTTRANID=@DEPTTRANID;
+    END
+    ELSE IF @MODE='GET_BY_APPLICATION'
+    BEGIN
+        SELECT *
+        FROM dbo.MISC_PAYMENT_TRANSACTION
+        WHERE APPLICATION_NUMBER=@APPLICATION_NUMBER
+        ORDER BY CREATED_ON DESC;
+    END
+    ELSE IF @MODE='UPDATE_VERIFICATION'
+    BEGIN
+        UPDATE dbo.MISC_PAYMENT_TRANSACTION
+        SET TRN_STATUS=@TRN_STATUS,
+            TRN_MESSAGE=@TRN_MESSAGE,
+            TRN_REF_NO=COALESCE(@TRN_REF_NO,TRN_REF_NO),
+            PAY_MODE=COALESCE(@PAY_MODE,PAY_MODE),
+            TXN_DATE=COALESCE(@TXN_DATE,TXN_DATE),
+            TXN_AMOUNT=COALESCE(@TXN_AMOUNT,TXN_AMOUNT),
+            CHALLAN_URL=COALESCE(@CHALLAN_URL,CHALLAN_URL),
+            GRN=COALESCE(@GRN,GRN),
+            CIN=COALESCE(@CIN,CIN),
+            LAST_VERIFIED_ON=SYSDATETIME(),
+            UPDATED_ON=SYSDATETIME()
+        WHERE DEPTTRANID=@DEPTTRANID
+          AND TRN_STATUS<>'SUCCESS';
+
+        IF @@ROWCOUNT=0
+           AND NOT EXISTS(SELECT 1 FROM dbo.MISC_PAYMENT_TRANSACTION WHERE DEPTTRANID=@DEPTTRANID)
+            THROW 51106,'Miscellaneous payment transaction not found.',1;
+
+        SELECT * FROM dbo.MISC_PAYMENT_TRANSACTION WHERE DEPTTRANID=@DEPTTRANID;
+    END
+    ELSE
+        THROW 51107,'Unsupported SP_MISC_PAYMENT_TRANSACTION_AED mode.',1;
+END;
+GO
