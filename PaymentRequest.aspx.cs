@@ -142,9 +142,10 @@ public partial class PaymentRequest : System.Web.UI.Page
 
                 enc_val = Request.QueryString["q"].ToString(); // if you want to bind it in markup / JS
 
-                // Miscellaneous payments use the same whitelisted gateway request page,
-                // but their transaction is validated against MISC_PAYMENT_TRANSACTION.
-                if ((addInfo3 ?? "").StartsWith("MISC-", StringComparison.Ordinal))
+                // Identify miscellaneous payments by their persisted transaction ID.
+                // ADDINFO3 remains the JEGRAS TR_TYPE expected by the gateway.
+                DataTable miscTransaction = MiscPaymentService.GetTransaction(deptTranId);
+                if (miscTransaction.Rows.Count > 0)
                 {
                     ValidateMiscellaneousRequest(arr1, amount);
                     return;
@@ -270,17 +271,13 @@ public partial class PaymentRequest : System.Web.UI.Page
             throw new InvalidOperationException("Miscellaneous payment transaction was not found.");
 
         DataRow stored = transactions.Rows[0];
-        string expectedMarker = "MISC-" +
-            Convert.ToString(stored["AUTHORITY_CODE"]) + "-" +
-            Convert.ToString(stored["REASON_ID"]);
-
         if (!string.Equals(Convert.ToString(stored["TRN_STATUS"]), "INITIATED", StringComparison.Ordinal) ||
             appId != Convert.ToInt32(stored["APP_ID"]) ||
             !string.Equals(data[5], Convert.ToString(stored["APPLICATION_NUMBER"]), StringComparison.Ordinal) ||
             amount != Convert.ToDecimal(stored["AMOUNT"]) ||
             !string.Equals(data[7], Convert.ToString(stored["OPERATION_FOR"]), StringComparison.Ordinal) ||
             !string.Equals(data[2], Convert.ToString(stored["APPLICANT_NAME"]).Replace("&", "and"), StringComparison.Ordinal) ||
-            !string.Equals(data[9], expectedMarker, StringComparison.Ordinal) ||
+            !string.Equals(data[9], Convert.ToString(stored["TR_TYPE"]), StringComparison.Ordinal) ||
             !string.Equals(data[0], Convert.ToString(stored["CFG_DEPTID"]), StringComparison.Ordinal) ||
             !string.Equals(data[1], Convert.ToString(stored["CFG_RECEIPTHEADCODE"]), StringComparison.Ordinal) ||
             !string.Equals(data[10], Convert.ToString(stored["CFG_TREASCODE"]), StringComparison.Ordinal) ||
