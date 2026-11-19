@@ -178,7 +178,7 @@ public partial class MISC_PAYMENT_STATUS : Page
             throw new InvalidOperationException("JEGRAS_SECURITY_CODE is not configured.");
 
         string encrypted = PayGetWayDTO.MakeEncrytedDataforDoubleVerification("",
-            Convert.ToString(stored["DEPTID"]), deptTranId, securityCode);
+            Convert.ToString(stored["CFG_DEPTID"]), deptTranId, securityCode);
         string json = new JavaScriptSerializer().Serialize(new
         {
             EncryptTxt = encrypted,
