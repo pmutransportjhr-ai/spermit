@@ -194,8 +194,17 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
     {
         using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
         using (SqlCommand cmd = new SqlCommand(@"SELECT COUNT(1)
-            FROM dbo.MISC_PAYMENT_REASON_OPTION_MASTER
-            WHERE REASON_ID=@REASON_ID AND PARENT_FIELD_KEY=@FIELD_KEY AND IS_ACTIVE=1", con))
+            FROM dbo.MISC_PAYMENT_REASON_CONFIG ParentField
+            INNER JOIN dbo.MISC_PAYMENT_REASON_CONFIG ParentOption
+                ON ParentOption.FIELD_CONFIG_ID = ParentField.CONFIG_ID
+               AND ParentOption.CONFIG_TYPE = 'OPTION'
+            INNER JOIN dbo.MISC_PAYMENT_REASON_CONFIG ChildOption
+                ON ChildOption.PARENT_OPTION_CONFIG_ID = ParentOption.CONFIG_ID
+               AND ChildOption.CONFIG_TYPE = 'OPTION'
+               AND ChildOption.REASON_ID = ParentField.REASON_ID
+            WHERE ParentField.REASON_ID = @REASON_ID
+              AND ParentField.CONFIG_TYPE = 'FIELD'
+              AND ParentField.FIELD_KEY = @FIELD_KEY", con))
         {
             cmd.Parameters.Add("@REASON_ID", SqlDbType.Int).Value = reasonId;
             cmd.Parameters.Add("@FIELD_KEY", SqlDbType.VarChar, 50).Value = fieldKey;
@@ -208,10 +217,26 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
     {
         DataTable dt = new DataTable();
         using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["connectionstring"].ConnectionString))
-        using (SqlCommand cmd = new SqlCommand(@"SELECT OPTION_CODE,OPTION_LABEL,PARENT_FIELD_KEY,PARENT_OPTION_CODE
-            FROM dbo.MISC_PAYMENT_REASON_OPTION_MASTER
-            WHERE REASON_ID=@REASON_ID AND FIELD_KEY=@FIELD_KEY AND IS_ACTIVE=1
-            ORDER BY DISPLAY_ORDER,OPTION_LABEL", con))
+        using (SqlCommand cmd = new SqlCommand(@"SELECT
+                O.OPTION_CODE,
+                O.OPTION_LABEL,
+                ParentField.FIELD_KEY AS PARENT_FIELD_KEY,
+                ParentOption.OPTION_CODE AS PARENT_OPTION_CODE
+            FROM dbo.MISC_PAYMENT_REASON_CONFIG FieldConfig
+            INNER JOIN dbo.MISC_PAYMENT_REASON_CONFIG O
+                ON O.FIELD_CONFIG_ID = FieldConfig.CONFIG_ID
+               AND O.CONFIG_TYPE = 'OPTION'
+            LEFT JOIN dbo.MISC_PAYMENT_REASON_CONFIG ParentOption
+                ON ParentOption.CONFIG_ID = O.PARENT_OPTION_CONFIG_ID
+               AND ParentOption.CONFIG_TYPE = 'OPTION'
+            LEFT JOIN dbo.MISC_PAYMENT_REASON_CONFIG ParentField
+                ON ParentField.CONFIG_ID = ParentOption.FIELD_CONFIG_ID
+               AND ParentField.CONFIG_TYPE = 'FIELD'
+            WHERE FieldConfig.REASON_ID = @REASON_ID
+              AND FieldConfig.CONFIG_TYPE = 'FIELD'
+              AND FieldConfig.FIELD_KEY = @FIELD_KEY
+              AND O.REASON_ID = @REASON_ID
+            ORDER BY O.DISPLAY_ORDER, O.OPTION_LABEL", con))
         using (SqlDataAdapter da = new SqlDataAdapter(cmd))
         {
             cmd.Parameters.Add("@REASON_ID", SqlDbType.Int).Value = reasonId;
@@ -743,30 +768,38 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
         SELECT
             COALESCE(O.OPERATION_FOR, R.OPERATION_FOR) AS OPERATION_FOR,
             COALESCE(O.TR_TYPE, R.TR_TYPE) AS TR_TYPE,
-            COALESCE(O.DEPTID, A.DEPTID) AS DEPTID,
-            COALESCE(O.RECEIPTHEADCODE, R.RECEIPTHEADCODE,
-                     A.RECEIPTHEADCODE) AS RECEIPTHEADCODE,
-            COALESCE(O.TREASCODE, A.TREASCODE) AS TREASCODE,
-            COALESCE(O.IFMSOFFICECODE, A.IFMSOFFICECODE) AS IFMSOFFICECODE,
+            COALESCE(O.DEPTID, R.DEPTID) AS DEPTID,
+            COALESCE(O.RECEIPTHEADCODE, R.RECEIPTHEADCODE) AS RECEIPTHEADCODE,
+            COALESCE(O.TREASCODE, R.TREASCODE) AS TREASCODE,
+            COALESCE(O.IFMSOFFICECODE, R.IFMSOFFICECODE) AS IFMSOFFICECODE,
             CASE
                 WHEN @FIELD_KEY IS NULL
                     THEN ISNULL(R.JEGRAS_ACTIVE, 0)
                 ELSE ISNULL(O.JEGRAS_ACTIVE, 0)
             END AS IS_ACTIVE
         FROM dbo.MISC_PAYMENT_REASON_MASTER R
-        INNER JOIN dbo.MISC_PAYMENT_AUTHORITY_MASTER A
-            ON A.AUTHORITY_CODE = R.AUTHORITY_CODE
-           AND A.IS_ACTIVE = 1
-        LEFT JOIN dbo.MISC_PAYMENT_REASON_OPTION_MASTER O
+        LEFT JOIN dbo.MISC_PAYMENT_REASON_CONFIG FieldConfig
+            ON FieldConfig.REASON_ID = R.REASON_ID
+           AND FieldConfig.CONFIG_TYPE = 'FIELD'
+           AND FieldConfig.FIELD_KEY = @FIELD_KEY
+        LEFT JOIN dbo.MISC_PAYMENT_REASON_CONFIG O
             ON O.REASON_ID = R.REASON_ID
-           AND O.FIELD_KEY = @FIELD_KEY
+           AND O.CONFIG_TYPE = 'OPTION'
+           AND O.FIELD_CONFIG_ID = FieldConfig.CONFIG_ID
            AND O.OPTION_CODE = @OPTION_CODE
-           AND O.IS_ACTIVE = 1
            AND (
                 @PARENT_FIELD_KEY IS NULL
-                OR (
-                    O.PARENT_FIELD_KEY = @PARENT_FIELD_KEY
-                    AND O.PARENT_OPTION_CODE = @PARENT_OPTION_CODE
+                OR EXISTS
+                (
+                    SELECT 1
+                    FROM dbo.MISC_PAYMENT_REASON_CONFIG ParentOption
+                    INNER JOIN dbo.MISC_PAYMENT_REASON_CONFIG ParentField
+                        ON ParentField.CONFIG_ID = ParentOption.FIELD_CONFIG_ID
+                       AND ParentField.CONFIG_TYPE = 'FIELD'
+                    WHERE ParentOption.CONFIG_ID = O.PARENT_OPTION_CONFIG_ID
+                      AND ParentOption.CONFIG_TYPE = 'OPTION'
+                      AND ParentField.FIELD_KEY = @PARENT_FIELD_KEY
+                      AND ParentOption.OPTION_CODE = @PARENT_OPTION_CODE
                 )
            )
         WHERE R.REASON_ID = @REASON_ID
