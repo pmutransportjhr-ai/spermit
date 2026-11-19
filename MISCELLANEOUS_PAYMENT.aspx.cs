@@ -552,7 +552,7 @@ public partial class MISCELLANEOUS_PAYMENT : System.Web.UI.Page
             string fieldsJson = CollectDynamicFields(reasonId);
 
             // Resolve JEGRAS configuration using the selected reason and fields.
-            // This must return an active row from MISC_PAYMENT_JEGRAS_MAPPING_MASTER.
+            // Resolve the active JEGRAS mapping from the consolidated reason configuration.
             DataRow mapping = GetJegrasMapping(reasonId, fieldsJson);
 
             if (mapping == null)
