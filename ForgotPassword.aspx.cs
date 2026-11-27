@@ -14,20 +14,31 @@ public partial class ForgotPassword : System.Web.UI.Page
 
     protected void Page_PreInit(object sender, EventArgs e)
     {
+        // Bind ViewState to this authenticated session and prevent browser caching.
         Page.ViewStateUserKey = Session.SessionID;
         Response.Cache.SetCacheability(HttpCacheability.NoCache);
         Response.Cache.SetNoStore();
     }
 
-    protected void Page_Load(object sender, EventArgs e)
+    protected void Page_Init(object sender, EventArgs e)
     {
-        // This page is deliberately restricted to the Super Admin role.
-        // Re-check authorization on every request, including postbacks.
+        // Enforce access before page controls/events are processed. This check
+        // runs for direct URL requests as well as every postback.
         if (!IsAuthorizedAdmin())
         {
-            Response.Redirect("Login.aspx", true);
-            return;
+            string redirectUrl = Session["EMPLOYEE_ID"] == null
+                ? "Login.aspx"
+                : "Login.aspx";
+
+            Response.Redirect(redirectUrl, false);
+            Context.ApplicationInstance.CompleteRequest();
         }
+    }
+
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsAuthorizedAdmin())
+            return;
 
         if (!IsPostBack)
         {
@@ -38,9 +49,13 @@ public partial class ForgotPassword : System.Web.UI.Page
 
     private bool IsAuthorizedAdmin()
     {
-        return Session["EMPLOYEE_ID"] != null &&
-               string.Equals(Convert.ToString(Session["USER_ROLE"]), "Super Admin",
-                   StringComparison.OrdinalIgnoreCase);
+        string employeeId = Convert.ToString(Session["EMPLOYEE_ID"]);
+        string role = Convert.ToString(Session["USER_ROLE"]).Trim();
+
+        // USER_ROLE is populated from the authenticated user's database record
+        // in Login.aspx.cs. Do not rely on URL parameters or client-side checks.
+        return !string.IsNullOrWhiteSpace(employeeId) &&
+               string.Equals(role, "Super Admin", StringComparison.OrdinalIgnoreCase);
     }
 
     private bool IsValidUserType(string userType)
