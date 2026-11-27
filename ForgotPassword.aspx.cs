@@ -1,125 +1,229 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using System.Security.Principal;
-using System.Configuration;
-using System.Security;
-using System.Security.Principal;
-using System.Globalization;
-using System.Text;
-using System.Collections.Generic;
+﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Web.Script.Serialization;
-using System.Web.SessionState;
+using System.Configuration;
+using System.Text.RegularExpressions;
+using System.Web;
+using System.Web.UI;
 using SoftEra.JHT.Infrastructure;
-using System.Transactions;
-using System.Net.Mail;
-
 
 public partial class ForgotPassword : System.Web.UI.Page
 {
-  
+    private const string SearchProcedure = "ADMIN_SEARCH_USER_FOR_PASSWORD_RESET";
+    private const string ResetProcedure = "ADMIN_RESET_USER_PASSWORD";
+
+    protected void Page_PreInit(object sender, EventArgs e)
+    {
+        Page.ViewStateUserKey = Session.SessionID;
+        Response.Cache.SetCacheability(HttpCacheability.NoCache);
+        Response.Cache.SetNoStore();
+    }
+
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (!Page.IsPostBack)
+        // This page is deliberately restricted to the Super Admin role.
+        // Re-check authorization on every request, including postbacks.
+        if (!IsAuthorizedAdmin())
         {
-            
-            //= drawString;
-          //  hdnCap.Value = Convert.ToString( Session["captcha"]);
+            Response.Redirect("Login.aspx", true);
+            return;
+        }
+
+        if (!IsPostBack)
+        {
+            Session["salt"] = ConfigurationManager.AppSettings["SecurityKey"];
+            pnlUserDetails.Visible = false;
         }
     }
 
-    protected void btnSubmit_Click(object sender, EventArgs e)
+    private bool IsAuthorizedAdmin()
     {
-        FP();
+        return Session["EMPLOYEE_ID"] != null &&
+               string.Equals(Convert.ToString(Session["USER_ROLE"]), "Super Admin",
+                   StringComparison.OrdinalIgnoreCase);
     }
-    public void FP()
+
+    private bool IsValidUserType(string userType)
     {
-       
+        return userType == "STA" || userType == "RTA";
+    }
+
+    protected void btnSearch_Click(object sender, EventArgs e)
+    {
+        pnlUserDetails.Visible = false;
+        ViewState.Remove("SelectedEmployeeId");
+        ViewState.Remove("SelectedUserType");
+        ClearMessage();
+
+        string userType = ddlType.SelectedValue;
+        string searchText = (txtSearch.Text ?? string.Empty).Trim();
+
+        if (!IsValidUserType(userType))
+        {
+            ShowMessage("Please select STA or RTA user type.", true);
+            return;
+        }
+
+        if (searchText.Length == 0 || searchText.Length > 200)
+        {
+            ShowMessage("Please enter a username, email address or mobile number.", true);
+            return;
+        }
 
         try
         {
-            using (TransactionScope scope = new TransactionScope())
+            SqlParameter[] parameters = new SqlParameter[]
             {
-                try
-                {
-                    String Email = txtLogin.Text;
-                    String TYPE = ddlType.SelectedValue;
-                    String ForgetPassCode = Guid.NewGuid().ToString();
+                new SqlParameter("@TYPE", SqlDbType.VarChar, 3) { Value = userType },
+                new SqlParameter("@SEARCH_TEXT", SqlDbType.NVarChar, 200) { Value = searchText }
+            };
 
+            DataSet data = SQLHelper.ExecuteDataset(
+                SQLHelper.GetConnString(), CommandType.StoredProcedure,
+                SearchProcedure, parameters);
 
-                    SqlParameter[] parameters = new SqlParameter[5];
-                    parameters[0] = new SqlParameter("@EMAIL_ID", Email);
-                    parameters[1] = new SqlParameter("@PASSWORD", DBNull.Value);
-                    parameters[2] = new SqlParameter("@TYPE", TYPE);
-                    parameters[3] = new SqlParameter("@FORGOT_PASS_CODE", ForgetPassCode);
-                    parameters[4] = new SqlParameter("@Mode", "EMAILEXIST");
+            if (data == null || data.Tables.Count == 0 || data.Tables[0].Rows.Count == 0)
+            {
+                ShowMessage("No matching user was found for the selected user type.", true);
+                return;
+            }
 
-                    var obj = SQLHelper.ExecuteScalar(SQLHelper.GetConnString(), CommandType.StoredProcedure, "FORGOT_PASSWORD_USER", parameters);
-                    if (Convert.ToInt32(obj) == 0)
-                    {
-                        ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "alert('Sorry!!! this Email Id is inactive or not registered with us');", true);
-                        
+            if (data.Tables[0].Rows.Count > 1)
+            {
+                ShowMessage("More than one user matches this search. Please search using a unique username or mobile number.", true);
+                return;
+            }
 
-                    }
-                    else
-                    {
-                       
+            DataRow user = data.Tables[0].Rows[0];
+            string employeeId = Convert.ToString(user["EMPLOYEE_ID"]);
 
-                        string q = CryptorEngine.Encrypt("EmailId=" + Email + "&TYPE=" + TYPE + "&AutoCode=" + ForgetPassCode, true);
-                        parameters[4] = new SqlParameter("@Mode", "UPDATEFCODE");
-                        SQLHelper.ExecuteNonQuery(SQLHelper.GetConnString(), CommandType.StoredProcedure, "FORGOT_PASSWORD_USER", parameters);
-                        StringBuilder sbody = new StringBuilder();
-                        sbody.Append("You have recieved this mail in response to your Password Recovery Request" + "<br/><br/>" + "<span style='color:blue'>" + "<a href=http://spermit.jharkhand.gov.in/PasswordReset.aspx?q=" + HttpUtility.UrlEncode(q, Response.ContentEncoding) + "> Click here to change your password</a>" + "</span>");
-                        sbody.Append("<br><br><b>Best wishes,</b><br><b>Transport Team</b>");
-                        MailMessage mailMessage = new MailMessage(new MailAddress("spermitjhr@gmail.com"), new MailAddress(Email));
-                        mailMessage.Subject = "Password Recovery: TDJ";
-                        mailMessage.IsBodyHtml = true;
-                        mailMessage.Body = sbody.ToString();
+            if (string.IsNullOrWhiteSpace(employeeId))
+            {
+                ShowMessage("The selected user record does not contain a valid employee ID.", true);
+                return;
+            }
 
-                        System.Net.NetworkCredential networkCredentials = new System.Net.NetworkCredential("spermitjhr@gmail.com", "spermit@123");
-                        SmtpClient smtpClient = new SmtpClient();
-                        smtpClient.UseDefaultCredentials = false;
-			//smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-                        smtpClient.EnableSsl = true;
-                        smtpClient.Host = "smtp.gmail.com";
-                        smtpClient.Port = 587;
-                        smtpClient.Credentials = networkCredentials;
-                        smtpClient.Send(mailMessage);
-                        
-                        scope.Complete();
-                        ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "alert('A password request link for reset your password has been sent to your Email id. Please check your spam/junk folder in case the email is not received in the Inbox');", true);
-                        
-                    }
-                }
-                catch (Exception ex)
-                {
-                    scope.Dispose();
-                    String Message = ex.Message;
-                    Message = Message.Replace("\r", " ").Replace("\n", " ").Replace("'", "");
-                    ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "alert('" + Message + "');window.location ='Login.aspx'", true);
+            lblEmployeeName.Text = Convert.ToString(user["EMPLOYEE_NAME"]);
+            lblLoginId.Text = Convert.ToString(user["LOGIN_ID"]);
+            lblEmail.Text = Convert.ToString(user["EMAIL_ID"]);
+            lblMobile.Text = Convert.ToString(user["MOBILE_NUMBER"]);
+            lblStatus.Text = Convert.ToString(user["STATUS"]);
 
-                }
+            // Store the selected identity in MAC-protected ViewState rather than
+            // trusting a client-editable hidden field during the reset postback.
+            ViewState["SelectedEmployeeId"] = employeeId;
+            ViewState["SelectedUserType"] = userType;
+            pnlUserDetails.Visible = true;
+            ShowMessage("User found. Verify the details before resetting the password.", false);
+        }
+        catch (Exception)
+        {
+            ShowMessage("Unable to search users right now. Please contact the system administrator.", true);
+        }
+    }
+
+    protected void btnResetPassword_Click(object sender, EventArgs e)
+    {
+        ClearMessage();
+
+        if (!IsAuthorizedAdmin())
+        {
+            Response.Redirect("Login.aspx", true);
+            return;
+        }
+
+        string employeeId = Convert.ToString(ViewState["SelectedEmployeeId"]);
+        string userType = Convert.ToString(ViewState["SelectedUserType"]);
+        string newPassword = txtNewPassword.Text ?? string.Empty;
+        string confirmPassword = txtConfirmPassword.Text ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(employeeId) || !IsValidUserType(userType))
+        {
+            pnlUserDetails.Visible = false;
+            ShowMessage("Please search and select a user again before resetting the password.", true);
+            return;
+        }
+
+        if (!IsStrongPassword(newPassword))
+        {
+            ShowMessage("Password must be 8-20 characters and contain at least one uppercase letter, one lowercase letter, one number and one special character.", true);
+            return;
+        }
+
+        if (!string.Equals(newPassword, confirmPassword, StringComparison.Ordinal))
+        {
+            ShowMessage("New password and confirm password do not match.", true);
+            return;
+        }
+
+        string salt = Convert.ToString(ConfigurationManager.AppSettings["SecurityKey"]);
+        if (string.IsNullOrEmpty(salt))
+        {
+            ShowMessage("Password security configuration is missing. Please contact the system administrator.", true);
+            return;
+        }
+
+        try
+        {
+            // Match the existing Login.aspx flow exactly:
+            // browser hash = SHA512(SHA512(plain password) + SecurityKey)
+            // stored hash  = SHA512(browser hash + SecurityKey)
+            string firstHash = hashcodegenerate.GetSHA512(newPassword);
+            string browserHash = hashcodegenerate.GetSHA512(firstHash + salt);
+            string storedPasswordHash = hashcodegenerate.GetSHA512(browserHash + salt);
+
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@TYPE", SqlDbType.VarChar, 3) { Value = userType },
+                new SqlParameter("@EMPLOYEE_ID", SqlDbType.NVarChar, 50) { Value = employeeId },
+                new SqlParameter("@PASSWORD", SqlDbType.VarChar, 128) { Value = storedPasswordHash },
+                new SqlParameter("@MODIFIED_BY", SqlDbType.NVarChar, 50) { Value = Convert.ToString(Session["EMPLOYEE_ID"]) }
+            };
+
+            object result = SQLHelper.ExecuteScalar(
+                SQLHelper.GetConnString(), CommandType.StoredProcedure,
+                ResetProcedure, parameters);
+
+            if (string.Equals(Convert.ToString(result), "Success", StringComparison.OrdinalIgnoreCase))
+            {
+                txtNewPassword.Text = string.Empty;
+                txtConfirmPassword.Text = string.Empty;
+                ViewState.Remove("SelectedEmployeeId");
+                ViewState.Remove("SelectedUserType");
+                pnlUserDetails.Visible = false;
+                ShowMessage("Password updated successfully.", false);
+            }
+            else
+            {
+                ShowMessage("Password was not updated. The user record may have changed; please search again.", true);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            String Message = ex.Message;
-            Message = Message.Replace("\r", " ").Replace("\n", " ").Replace("'", "");
-            ScriptManager.RegisterClientScriptBlock(Page, Page.GetType(), Guid.NewGuid().ToString(), "alert('" + Message + "');window.location ='Login.aspx'", true);
-
-       }
-
-
-        
+            ShowMessage("Unable to reset the password right now. Please contact the system administrator.", true);
+        }
     }
+
+    private bool IsStrongPassword(string password)
+    {
+        return !string.IsNullOrEmpty(password) &&
+               Regex.IsMatch(password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,20}$");
+    }
+
+    private void ClearMessage()
+    {
+        lblMessage.Text = string.Empty;
+        lblMessage.ForeColor = System.Drawing.Color.Empty;
+    }
+
+    private void ShowMessage(string message, bool isError)
+    {
+        lblMessage.Text = message;
+        lblMessage.ForeColor = isError ? System.Drawing.Color.Red : System.Drawing.Color.Green;
+    }
+
     protected void btnCancel_Click(object sender, EventArgs e)
     {
-        Response.Redirect("Login.aspx");
+        Response.Redirect("Login.aspx", true);
     }
 }
